@@ -23,6 +23,8 @@ ffi.cdef("""
          PyObject* PyObject_Str(PyObject *o);
          PyObject* PyObject_Repr(PyObject *o);
          char* PyString_AsString(PyObject *string);
+
+         PyObject* PyObject_GetAttrString(PyObject *o, const char *attr_name);
          """)
 
 lib = ffi.verify("#include<Python.h>", libraries=["python2.7"], flags=ffi.RTLD_GLOBAL)
