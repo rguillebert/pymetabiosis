@@ -7,3 +7,8 @@ def test_getattr_on_module():
     connect = sqlite.connect
     assert isinstance(connect, MetabiosisWrapper)
     assert repr(connect).startswith("<function connect at ")
+
+def test_call_function():
+    sqlite = import_module("sqlite")
+    connection = sqlite.connect(":memory:")
+    assert repr(connection).startswith("<sqlite.main.Connection instance at ")

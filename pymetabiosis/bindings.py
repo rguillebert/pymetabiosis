@@ -5,6 +5,7 @@ ffi = FFI()
 
 ffi.cdef("""
          typedef ... PyObject;
+         typedef size_t Py_ssize_t;
 
          void Py_Initialize();
          void Py_Finalize();
@@ -24,7 +25,12 @@ ffi.cdef("""
          PyObject* PyObject_Repr(PyObject *o);
          char* PyString_AsString(PyObject *string);
 
+         PyObject* PyObject_Call(PyObject *callable_object, PyObject *args, PyObject *kw);
          PyObject* PyObject_GetAttrString(PyObject *o, const char *attr_name);
+
+         PyObject* PyString_FromString(const char *v);
+
+         PyObject* PyTuple_Pack(Py_ssize_t n, ...);
          """)
 
 lib = ffi.verify("#include<Python.h>", libraries=["python2.7"], flags=ffi.RTLD_GLOBAL)
