@@ -12,3 +12,12 @@ def test_call_function():
     sqlite = import_module("sqlite")
     connection = sqlite.connect(":memory:")
     assert repr(connection).startswith("<sqlite.main.Connection instance at ")
+
+def test_pass_wrapper_to_function():
+    sqlite = import_module("sqlite")
+    builtin = import_module("__builtin__")
+
+    string = builtin.str(":memory:")
+    connection = sqlite.connect(string)
+
+    assert repr(connection).startswith("<sqlite.main.Connection instance at ")
