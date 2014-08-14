@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages
+from pymetabiosis.bindings import ffi
 
 setup(
     name="pymetabiosis",
@@ -12,4 +13,7 @@ setup(
     description="A way of using CPython 2's modules on other cffi compatible Python implementations",
 
     install_requires=["cffi"],
+    ext_modules=[ffi.verifier.get_extension()],
+
+    zip_safe=False,
 )
