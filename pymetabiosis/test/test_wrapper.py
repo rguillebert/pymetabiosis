@@ -21,3 +21,21 @@ def test_pass_wrapper_to_function():
     connection = sqlite.connect(string)
 
     assert repr(connection).startswith("<sqlite.main.Connection instance at ")
+
+def test_sqlite():
+    # Taken from Python 2.7's sqlite doc
+    sqlite3 = import_module("sqlite3")
+
+    con = sqlite3.connect(":memory:")
+    cur = con.cursor()
+    cur.execute("create table people (name_last, age)")
+
+    who = "Yeltsin"
+    age = 72
+
+    cur.execute("insert into people values (?, ?)", (who, age))
+
+    cur.execute("select * from people where name_last=:who and age=:age", {"who": who, "age": age})
+
+    ret = cur.fetchone()
+    assert repr(ret) == "(u'Yeltsin', 72)"

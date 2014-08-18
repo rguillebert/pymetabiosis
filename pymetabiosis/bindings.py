@@ -31,6 +31,11 @@ ffi.cdef("""
          PyObject* PyString_FromString(const char *v);
 
          PyObject* PyTuple_Pack(Py_ssize_t n, ...);
+
+         PyObject* PyInt_FromLong(long ival);
+
+         PyObject* PyDict_New();
+         int PyDict_SetItem(PyObject *p, PyObject *key, PyObject *val);
          """)
 
 lib = ffi.verify("#include<Python.h>", libraries=["python2.7"], flags=ffi.RTLD_GLOBAL)

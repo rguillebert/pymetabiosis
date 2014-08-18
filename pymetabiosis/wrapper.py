@@ -1,8 +1,27 @@
 from pymetabiosis.bindings import lib, ffi
 import operator
 
+def convert(obj):
+    return converters[type(obj)](obj)
+
 def convert_string(str):
     return ffi.gc(lib.PyString_FromString(ffi.new("char[]", str)), lib.Py_DECREF)
+
+def convert_tuple(obj):
+    values = [convert(value) for value in obj]
+
+    return ffi.gc(lib.PyTuple_Pack(len(values), *values), lib.Py_DECREF)
+
+def convert_int(obj):
+    return ffi.gc(lib.PyInt_FromLong(obj), lib.Py_DECREF)
+
+def convert_dict(obj):
+    dict = ffi.gc(lib.PyDict_New(), lib.Py_DECREF)
+
+    for key, value in obj.iteritems():
+        lib.PyDict_SetItem(dict, convert(key), convert(value))
+
+    return dict
 
 class MetabiosisWrapper(object):
     def __init__(self, obj):
@@ -26,10 +45,7 @@ class MetabiosisWrapper(object):
         return MetabiosisWrapper(ffi.gc(py_attr, lib.Py_DECREF))
 
     def __call__(self, *args):
-        converters_lst = [converters[type(x)] for x in args]
-        arguments = [func(value) for value, func in zip(args, converters_lst)]
-
-        arguments_tuple = lib.PyTuple_Pack(len(arguments), *arguments)
+        arguments_tuple = convert_tuple(args)
 
         return_value = ffi.gc(lib.PyObject_Call(self.obj, arguments_tuple, ffi.NULL), lib.Py_DECREF)
 
@@ -41,4 +57,10 @@ class MetabiosisWrapper(object):
 
         return MetabiosisWrapper(return_value)
 
-converters = {str : convert_string, MetabiosisWrapper : operator.attrgetter("obj")}
+converters = {
+    str : convert_string,
+    MetabiosisWrapper : operator.attrgetter("obj"),
+    tuple : convert_tuple,
+    int : convert_int,
+    dict : convert_dict,
+}
