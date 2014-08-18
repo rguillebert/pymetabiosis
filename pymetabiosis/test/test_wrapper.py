@@ -39,3 +39,8 @@ def test_sqlite():
 
     ret = cur.fetchone()
     assert repr(ret) == "(u'Yeltsin', 72)"
+
+def test_gettype():
+    sqlite3 = import_module("sqlite3")
+
+    assert repr(sqlite3.get_type()) == "<type 'module'>"

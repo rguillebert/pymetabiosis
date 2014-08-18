@@ -4,7 +4,13 @@ import sys
 ffi = FFI()
 
 ffi.cdef("""
-         typedef ... PyObject;
+         typedef ... PyTypeObject;
+
+         typedef struct {
+             PyTypeObject* ob_type;
+             ...;
+         } PyObject;
+
          typedef size_t Py_ssize_t;
 
          void Py_Initialize();
@@ -38,6 +44,8 @@ ffi.cdef("""
          int PyDict_SetItem(PyObject *p, PyObject *key, PyObject *val);
          """)
 
-lib = ffi.verify("#include<Python.h>", libraries=["python2.7"], flags=ffi.RTLD_GLOBAL)
+lib = ffi.verify("""
+                 #include<Python.h>
+                 """, libraries=["python2.7"], flags=ffi.RTLD_GLOBAL)
 
 lib.Py_Initialize()

@@ -61,6 +61,13 @@ class MetabiosisWrapper(object):
 
         return MetabiosisWrapper(return_value)
 
+    def get_type(self):
+        typeobject = ffi.cast("PyObject*", self.obj.ob_type)
+
+        lib.Py_INCREF(typeobject)
+
+        return MetabiosisWrapper(ffi.gc(typeobject, lib.Py_DECREF))
+
 converters = {
     str : convert_string,
     MetabiosisWrapper : operator.attrgetter("obj"),
