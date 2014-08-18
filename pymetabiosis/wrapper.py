@@ -44,10 +44,14 @@ class MetabiosisWrapper(object):
             raise Exception()
         return MetabiosisWrapper(ffi.gc(py_attr, lib.Py_DECREF))
 
-    def __call__(self, *args):
+    def __call__(self, *args, **kwargs):
         arguments_tuple = convert_tuple(args)
 
-        return_value = ffi.gc(lib.PyObject_Call(self.obj, arguments_tuple, ffi.NULL), lib.Py_DECREF)
+        keywordargs = ffi.NULL
+        if kwargs:
+            keywordargs = convert_dict(kwargs)
+
+        return_value = ffi.gc(lib.PyObject_Call(self.obj, arguments_tuple, keywordargs), lib.Py_DECREF)
 
         lib.Py_DECREF(arguments_tuple)
 
