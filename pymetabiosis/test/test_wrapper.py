@@ -44,3 +44,8 @@ def test_gettype():
     sqlite3 = import_module("sqlite3")
 
     assert repr(sqlite3.get_type()) == "<type 'module'>"
+
+def test_convert_return_value():
+    builtin = import_module("__builtin__")
+
+    assert builtin.int(32) == 32

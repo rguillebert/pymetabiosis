@@ -1,8 +1,9 @@
-from pymetabiosis.bindings import lib, ffi
 import operator
+import pymetabiosis.module
+from pymetabiosis.bindings import lib, ffi
 
 def convert(obj):
-    return converters[type(obj)](obj)
+    return pypy_to_cpy_converters[type(obj)](obj)
 
 def convert_string(str):
     return ffi.gc(lib.PyString_FromString(ffi.new("char[]", str)), lib.Py_DECREF)
@@ -59,7 +60,7 @@ class MetabiosisWrapper(object):
             lib.PyErr_Print()
             raise Exception()
 
-        return MetabiosisWrapper(return_value)
+        return pypy_convert(return_value)
 
     def get_type(self):
         typeobject = ffi.cast("PyObject*", self.obj.ob_type)
@@ -68,10 +69,27 @@ class MetabiosisWrapper(object):
 
         return MetabiosisWrapper(ffi.gc(typeobject, lib.Py_DECREF))
 
-converters = {
+def pypy_convert(obj):
+    type = MetabiosisWrapper(obj).get_type().obj
+    if type in cpy_to_pypy_converters:
+        return cpy_to_pypy_converters[type](obj)
+    else:
+        return MetabiosisWrapper(obj)
+
+def pypy_convert_int(obj):
+    return int(lib.PyLong_AsLong(obj))
+
+pypy_to_cpy_converters = {
     str : convert_string,
     MetabiosisWrapper : operator.attrgetter("obj"),
     tuple : convert_tuple,
     int : convert_int,
     dict : convert_dict,
 }
+
+def init_cpy_to_pypy_converters():
+    global cpy_to_pypy_converters
+
+    builtin = pymetabiosis.module.import_module("__builtin__")
+
+    cpy_to_pypy_converters = {builtin.int.obj : pypy_convert_int}

@@ -39,6 +39,7 @@ ffi.cdef("""
          PyObject* PyTuple_Pack(Py_ssize_t n, ...);
 
          PyObject* PyInt_FromLong(long ival);
+         long PyLong_AsLong(PyObject *obj);
 
          PyObject* PyDict_New();
          int PyDict_SetItem(PyObject *p, PyObject *key, PyObject *val);

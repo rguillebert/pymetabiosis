@@ -1,5 +1,5 @@
 import os.path
-from pymetabiosis import import_module
+from pymetabiosis.module import import_module
 
 def test_import_sqlite():
     module = import_module("sqlite")
