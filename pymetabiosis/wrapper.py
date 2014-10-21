@@ -5,8 +5,13 @@ from pymetabiosis.bindings import lib, ffi
 def convert(obj):
     return pypy_to_cpy_converters[type(obj)](obj)
 
-def convert_string(str):
-    return ffi.gc(lib.PyString_FromString(ffi.new("char[]", str)), lib.Py_DECREF)
+def convert_string(s):
+    return ffi.gc(lib.PyString_FromString(ffi.new("char[]", s)), lib.Py_DECREF)
+
+def convert_unicode(u):
+    return ffi.gc(
+            lib.PyUnicode_FromString(ffi.new("char[]", u.encode('utf-8'))),
+            lib.Py_DECREF)
 
 def convert_tuple(obj):
     values = [convert(value) for value in obj]
@@ -88,8 +93,18 @@ def pypy_convert_float(obj):
 def pypy_convert_string(obj):
     return ffi.string(lib.PyString_AsString(obj))
 
+def pypy_convert_tuple(obj):
+    return tuple(
+            pypy_convert(lib.PyTuple_GetItem(obj, i))
+            for i in xrange(lib.PyTuple_Size(obj)))
+
+def pypy_convert_unicode(obj):
+    return pypy_convert_string(lib.PyUnicode_AsUTF8String(obj))\
+            .decode('utf-8')
+
 pypy_to_cpy_converters = {
     str : convert_string,
+    unicode : convert_unicode,
     MetabiosisWrapper : operator.attrgetter("obj"),
     tuple : convert_tuple,
     int : convert_int,
@@ -108,4 +123,6 @@ def init_cpy_to_pypy_converters():
             builtin.int.obj : pypy_convert_int,
             builtin.float.obj : pypy_convert_float,
             builtin.str.obj : pypy_convert_string,
+            builtin.unicode.obj : pypy_convert_unicode,
+            builtin.tuple.obj : pypy_convert_tuple,
             }

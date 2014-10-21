@@ -33,11 +33,20 @@ ffi.cdef("""
          PyObject* PyObject_Call(PyObject *callable_object, PyObject *args, PyObject *kw);
          PyObject* PyObject_GetAttrString(PyObject *o, const char *attr_name);
 
+         // String: https://docs.python.org/2/c-api/string.html
          char* PyString_AsString(PyObject *string);
          PyObject* PyString_FromString(const char *v);
 
-         PyObject* PyTuple_Pack(Py_ssize_t n, ...);
+         // Unicode: https://docs.python.org/2/c-api/unicode.html
+         PyObject* PyUnicode_AsUTF8String(PyObject* obj);
+         PyObject* PyUnicode_FromString(const char *u);
 
+         // Tuple: https://docs.python.org/2/c-api/tuple.html
+         PyObject* PyTuple_Pack(Py_ssize_t n, ...);
+         PyObject* PyTuple_GetItem(PyObject* tuple, int index);
+         Py_ssize_t PyTuple_Size(PyObject* obj);
+
+         // Integer: http://docs.python.org/2/c-api/int.html
          PyObject* PyInt_FromLong(long ival);
          long PyLong_AsLong(PyObject *obj);
 

@@ -1,3 +1,4 @@
+# encoding: utf-8
 from pymetabiosis.module import import_module
 from pymetabiosis.wrapper import MetabiosisWrapper
 
@@ -36,7 +37,7 @@ def test_sqlite():
     cur.execute("select * from people where name_last=:who and age=:age", {"who": who, "age": age})
 
     ret = cur.fetchone()
-    assert repr(ret) == "(u'Yeltsin', 72)"
+    assert ret == (u'Yeltsin', 72)
 
 def test_gettype():
     sqlite3 = import_module("sqlite3")
@@ -50,3 +51,6 @@ def test_convert_return_value():
     assert builtin.float(3.123) == 3.123
     for s in ['a string']: # TODO 'a string \00yep']:
         assert builtin.str(s) == s
+    unicode_string = u"some буквы are странные"
+    assert builtin.unicode(unicode_string) == unicode_string
+    assert builtin.tuple((1, (2.3,))) == (1, (2.3,))
