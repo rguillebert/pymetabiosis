@@ -65,3 +65,5 @@ def test_convert_return_value():
     lst = ['a', 1, [2]]
     assert builtin.list(lst) == lst
 
+    assert builtin.bool(True) is True
+    assert builtin.bool(False) is False

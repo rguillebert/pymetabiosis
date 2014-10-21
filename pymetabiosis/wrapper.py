@@ -21,6 +21,10 @@ def convert_tuple(obj):
 def convert_int(obj):
     return ffi.gc(lib.PyInt_FromLong(obj), lib.Py_DECREF)
 
+def convert_bool(obj):
+    return ffi.gc(lib.Py_True, lib.Py_DECREF) \
+            if obj else ffi.gc(lib.Py_False, lib.Py_DECREF)
+
 def convert_float(obj):
     return ffi.gc(lib.PyFloat_FromDouble(obj), lib.Py_DECREF)
 
@@ -93,6 +97,9 @@ def pypy_convert(obj):
 def pypy_convert_int(obj):
     return int(lib.PyLong_AsLong(obj))
 
+def pypy_convert_bool(obj):
+    return obj == lib.Py_True
+
 def pypy_convert_float(obj):
     return float(lib.PyFloat_AsDouble(obj))
 
@@ -126,6 +133,7 @@ pypy_to_cpy_converters = {
     tuple : convert_tuple,
     dict : convert_dict,
     list : convert_list,
+    bool : convert_bool,
 }
 cpy_to_pypy_converters = {}
 
@@ -143,4 +151,5 @@ def init_cpy_to_pypy_converters():
             builtin.tuple.obj : pypy_convert_tuple,
             builtin.dict.obj : pypy_convert_dict,
             builtin.list.obj : pypy_convert_list,
+            builtin.bool.obj : pypy_convert_bool,
             }

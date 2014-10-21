@@ -61,6 +61,10 @@ ffi.cdef("""
          PyObject* PyInt_FromLong(long ival);
          long PyLong_AsLong(PyObject *obj);
 
+         // Boolean: https://docs.python.org/2/c-api/bool.html
+         PyObject* const Py_False;
+         PyObject* const Py_True;
+
          // Float: https://docs.python.org/2/c-api/float.html
          PyObject* PyFloat_FromDouble(double dval);
          double PyFloat_AsDouble(PyObject *obj);
