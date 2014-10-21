@@ -62,3 +62,6 @@ def test_convert_return_value():
     d = {'a': 'b', 1: 2}
     assert builtin.dict(d) == d
 
+    lst = ['a', 1, [2]]
+    assert builtin.list(lst) == lst
+

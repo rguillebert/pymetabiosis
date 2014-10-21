@@ -47,10 +47,14 @@ ffi.cdef("""
          Py_ssize_t PyTuple_Size(PyObject* obj);
 
          // List: https://docs.python.org/2/c-api/list.html
+         PyObject* PyList_New(Py_ssize_t len);
          PyObject* PyList_GetItem(PyObject *list, Py_ssize_t index);
          Py_ssize_t PyList_Size(PyObject *list);
+         int PyList_SetItem(PyObject *list, Py_ssize_t index, PyObject *item);
 
          // Dict: https://docs.python.org/2/c-api/dict.html
+         PyObject* PyDict_New();
+         int PyDict_SetItem(PyObject *p, PyObject *key, PyObject *val);
          PyObject* PyDict_Items(PyObject *p);
 
          // Integer: http://docs.python.org/2/c-api/int.html
@@ -61,8 +65,6 @@ ffi.cdef("""
          PyObject* PyFloat_FromDouble(double dval);
          double PyFloat_AsDouble(PyObject *obj);
 
-         PyObject* PyDict_New();
-         int PyDict_SetItem(PyObject *p, PyObject *key, PyObject *val);
          """)
 
 lib = ffi.verify("""

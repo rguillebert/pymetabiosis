@@ -32,6 +32,12 @@ def convert_dict(obj):
 
     return dict
 
+def convert_list(obj):
+    lst = ffi.gc(lib.PyList_New(len(obj)), lib.Py_DECREF)
+    for i, x in enumerate(obj):
+        lib.PyList_SetItem(lst, i, convert(x))
+    return lst
+
 class MetabiosisWrapper(object):
     def __init__(self, obj):
         self.obj = obj
@@ -104,18 +110,22 @@ def pypy_convert_tuple(obj):
 
 def pypy_convert_dict(obj):
     items = ffi.gc(lib.PyDict_Items(obj), lib.Py_DECREF)
-    return dict(pypy_convert(lib.PyList_GetItem(items, i))
-            for i in xrange(lib.PyList_Size(items)))
+    return dict(pypy_convert_list(items))
+
+def pypy_convert_list(obj):
+    return [pypy_convert(lib.PyList_GetItem(obj, i))
+            for i in xrange(lib.PyList_Size(obj))]
 
 
 pypy_to_cpy_converters = {
-    str : convert_string,
-    unicode : convert_unicode,
     MetabiosisWrapper : operator.attrgetter("obj"),
-    tuple : convert_tuple,
     int : convert_int,
     float : convert_float,
+    str : convert_string,
+    unicode : convert_unicode,
+    tuple : convert_tuple,
     dict : convert_dict,
+    list : convert_list,
 }
 cpy_to_pypy_converters = {}
 
@@ -132,4 +142,5 @@ def init_cpy_to_pypy_converters():
             builtin.unicode.obj : pypy_convert_unicode,
             builtin.tuple.obj : pypy_convert_tuple,
             builtin.dict.obj : pypy_convert_dict,
+            builtin.list.obj : pypy_convert_list,
             }
