@@ -46,10 +46,18 @@ ffi.cdef("""
          PyObject* PyTuple_GetItem(PyObject* tuple, int index);
          Py_ssize_t PyTuple_Size(PyObject* obj);
 
+         // List: https://docs.python.org/2/c-api/list.html
+         PyObject* PyList_GetItem(PyObject *list, Py_ssize_t index);
+         Py_ssize_t PyList_Size(PyObject *list);
+
+         // Dict: https://docs.python.org/2/c-api/dict.html
+         PyObject* PyDict_Items(PyObject *p);
+
          // Integer: http://docs.python.org/2/c-api/int.html
          PyObject* PyInt_FromLong(long ival);
          long PyLong_AsLong(PyObject *obj);
 
+         // Float: https://docs.python.org/2/c-api/float.html
          PyObject* PyFloat_FromDouble(double dval);
          double PyFloat_AsDouble(PyObject *obj);
 

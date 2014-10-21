@@ -49,8 +49,16 @@ def test_convert_return_value():
 
     assert builtin.int(32) == 32
     assert builtin.float(3.123) == 3.123
+
     for s in ['a string']: # TODO 'a string \00yep']:
         assert builtin.str(s) == s
-    unicode_string = u"some буквы are странные"
-    assert builtin.unicode(unicode_string) == unicode_string
-    assert builtin.tuple((1, (2.3,))) == (1, (2.3,))
+
+    u = u"some буквы are странные"
+    assert builtin.unicode(u) == u
+
+    t = (1, (2.3,))
+    assert builtin.tuple(t) == t
+
+    d = {'a': 'b', 1: 2}
+    assert builtin.dict(d) == d
+

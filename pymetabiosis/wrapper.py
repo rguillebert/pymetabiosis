@@ -93,14 +93,20 @@ def pypy_convert_float(obj):
 def pypy_convert_string(obj):
     return ffi.string(lib.PyString_AsString(obj))
 
+def pypy_convert_unicode(obj):
+    return pypy_convert_string(lib.PyUnicode_AsUTF8String(obj))\
+            .decode('utf-8')
+
 def pypy_convert_tuple(obj):
     return tuple(
             pypy_convert(lib.PyTuple_GetItem(obj, i))
             for i in xrange(lib.PyTuple_Size(obj)))
 
-def pypy_convert_unicode(obj):
-    return pypy_convert_string(lib.PyUnicode_AsUTF8String(obj))\
-            .decode('utf-8')
+def pypy_convert_dict(obj):
+    items = ffi.gc(lib.PyDict_Items(obj), lib.Py_DECREF)
+    return dict(pypy_convert(lib.PyList_GetItem(items, i))
+            for i in xrange(lib.PyList_Size(items)))
+
 
 pypy_to_cpy_converters = {
     str : convert_string,
@@ -125,4 +131,5 @@ def init_cpy_to_pypy_converters():
             builtin.str.obj : pypy_convert_string,
             builtin.unicode.obj : pypy_convert_unicode,
             builtin.tuple.obj : pypy_convert_tuple,
+            builtin.dict.obj : pypy_convert_dict,
             }
