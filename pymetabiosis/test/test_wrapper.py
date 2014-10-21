@@ -49,3 +49,4 @@ def test_convert_return_value():
     builtin = import_module("__builtin__")
 
     assert builtin.int(32) == 32
+    assert builtin.float(3.123) == 3.123

@@ -41,6 +41,9 @@ ffi.cdef("""
          PyObject* PyInt_FromLong(long ival);
          long PyLong_AsLong(PyObject *obj);
 
+         PyObject* PyFloat_FromDouble(double dval);
+         double PyFloat_AsDouble(PyObject *obj);
+
          PyObject* PyDict_New();
          int PyDict_SetItem(PyObject *p, PyObject *key, PyObject *val);
          """)

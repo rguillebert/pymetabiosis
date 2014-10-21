@@ -16,6 +16,9 @@ def convert_tuple(obj):
 def convert_int(obj):
     return ffi.gc(lib.PyInt_FromLong(obj), lib.Py_DECREF)
 
+def convert_float(obj):
+    return ffi.gc(lib.PyFloat_FromDouble(obj), lib.Py_DECREF)
+
 def convert_dict(obj):
     dict = ffi.gc(lib.PyDict_New(), lib.Py_DECREF)
 
@@ -79,17 +82,26 @@ def pypy_convert(obj):
 def pypy_convert_int(obj):
     return int(lib.PyLong_AsLong(obj))
 
+def pypy_convert_float(obj):
+    return float(lib.PyFloat_AsDouble(obj))
+
 pypy_to_cpy_converters = {
     str : convert_string,
     MetabiosisWrapper : operator.attrgetter("obj"),
     tuple : convert_tuple,
     int : convert_int,
+    float : convert_float,
     dict : convert_dict,
 }
+cpy_to_pypy_converters = {}
+
 
 def init_cpy_to_pypy_converters():
     global cpy_to_pypy_converters
 
     builtin = pymetabiosis.module.import_module("__builtin__")
 
-    cpy_to_pypy_converters = {builtin.int.obj : pypy_convert_int}
+    cpy_to_pypy_converters = {
+            builtin.int.obj : pypy_convert_int,
+            builtin.float.obj : pypy_convert_float,
+            }
