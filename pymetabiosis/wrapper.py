@@ -85,6 +85,9 @@ def pypy_convert_int(obj):
 def pypy_convert_float(obj):
     return float(lib.PyFloat_AsDouble(obj))
 
+def pypy_convert_string(obj):
+    return ffi.string(lib.PyString_AsString(obj))
+
 pypy_to_cpy_converters = {
     str : convert_string,
     MetabiosisWrapper : operator.attrgetter("obj"),
@@ -104,4 +107,5 @@ def init_cpy_to_pypy_converters():
     cpy_to_pypy_converters = {
             builtin.int.obj : pypy_convert_int,
             builtin.float.obj : pypy_convert_float,
+            builtin.str.obj : pypy_convert_string,
             }

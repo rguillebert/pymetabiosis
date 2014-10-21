@@ -15,10 +15,8 @@ def test_call_function():
 
 def test_pass_wrapper_to_function():
     sqlite = import_module("sqlite3")
-    builtin = import_module("__builtin__")
 
-    string = builtin.str(":memory:")
-    connection = sqlite.connect(string)
+    connection = sqlite.connect(":memory:")
 
     assert repr(connection).startswith("<sqlite3.Connection object at ")
 
@@ -50,3 +48,5 @@ def test_convert_return_value():
 
     assert builtin.int(32) == 32
     assert builtin.float(3.123) == 3.123
+    for s in ['a string']: # TODO 'a string \00yep']:
+        assert builtin.str(s) == s
