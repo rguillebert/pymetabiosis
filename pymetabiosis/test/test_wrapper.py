@@ -2,25 +2,25 @@ from pymetabiosis.module import import_module
 from pymetabiosis.wrapper import MetabiosisWrapper
 
 def test_getattr_on_module():
-    sqlite = import_module("sqlite")
+    sqlite = import_module("sqlite3")
     assert isinstance(sqlite, MetabiosisWrapper)
     connect = sqlite.connect
     assert isinstance(connect, MetabiosisWrapper)
-    assert repr(connect).startswith("<function connect at ")
+    assert repr(connect).startswith("<built-in function connect>")
 
 def test_call_function():
-    sqlite = import_module("sqlite")
+    sqlite = import_module("sqlite3")
     connection = sqlite.connect(":memory:")
-    assert repr(connection).startswith("<sqlite.main.Connection instance at ")
+    assert repr(connection).startswith("<sqlite3.Connection object at ")
 
 def test_pass_wrapper_to_function():
-    sqlite = import_module("sqlite")
+    sqlite = import_module("sqlite3")
     builtin = import_module("__builtin__")
 
     string = builtin.str(":memory:")
     connection = sqlite.connect(string)
 
-    assert repr(connection).startswith("<sqlite.main.Connection instance at ")
+    assert repr(connection).startswith("<sqlite3.Connection object at ")
 
 def test_sqlite():
     # Taken from Python 2.7's sqlite doc
