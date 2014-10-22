@@ -69,6 +69,7 @@ ffi.cdef("""
          PyObject* PyObject_GetItem(PyObject *o, PyObject *key);
          int PyObject_SetItem(PyObject *o, PyObject *key, PyObject *v);
          int PyObject_DelItem(PyObject *o, PyObject *key);
+         Py_ssize_t PyObject_Size(PyObject *o);
 
          // String: https://docs.python.org/2/c-api/string.html
          char* PyString_AsString(PyObject *string);
@@ -195,6 +196,7 @@ for args in [
         'PyObject_GetItem',
         ('PyObject_SetItem', -1),
         ('PyObject_DelItem', -1),
+        ('PyObject_Size', -1),
         'PyString_AsString',
         'PyString_FromString',
         'PyUnicode_AsUTF8String', # ? docs say nothing about these two

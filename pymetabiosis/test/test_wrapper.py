@@ -107,6 +107,16 @@ def test_str_repr_dir():
     assert set(['rjust', 'rpartition', 'rstrip', '__le__'])\
             .issubset(dir(builtin.str('a')))
 
+def test_len():
+    builtin = import_module("__builtin__", noconvert=True)
+    lst = builtin.list([1, 'a'])
+    assert len(lst) == 2
+    assert len(builtin.list()) == 0
+    assert len(builtin.str('abc')) == 3
+
+    with pytest.raises(TypeError):
+        len(builtin.iter([1]))
+
 def test_exceptions():
     builtin = import_module("__builtin__")
 
