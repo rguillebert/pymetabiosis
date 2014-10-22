@@ -196,7 +196,7 @@ for args in [
         'PyObject_GetItem',
         ('PyObject_SetItem', -1),
         ('PyObject_DelItem', -1),
-        ('PyObject_Size', -1),
+        ('PyObject_Size', int(ffi.cast('Py_ssize_t', -1))),
         'PyString_AsString',
         'PyString_FromString',
         'PyUnicode_AsUTF8String', # ? docs say nothing about these two
