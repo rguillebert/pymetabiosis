@@ -117,6 +117,11 @@ def test_len():
     with pytest.raises(TypeError):
         len(builtin.iter([1]))
 
+def test_iter():
+    builtin = import_module("__builtin__", noconvert=True)
+    assert list(builtin.list([1, 'a'])) == [1, 'a']
+    assert list(builtin.iter(['a'])) == ['a']
+
 def test_exceptions():
     builtin = import_module("__builtin__")
 

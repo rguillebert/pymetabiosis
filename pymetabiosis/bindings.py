@@ -70,6 +70,10 @@ ffi.cdef("""
          int PyObject_SetItem(PyObject *o, PyObject *key, PyObject *v);
          int PyObject_DelItem(PyObject *o, PyObject *key);
          Py_ssize_t PyObject_Size(PyObject *o);
+         PyObject* PyObject_GetIter(PyObject *o);
+
+         // Iterator: https://docs.python.org/2/c-api/iter.html
+         PyObject* PyIter_Next(PyObject *o);
 
          // String: https://docs.python.org/2/c-api/string.html
          char* PyString_AsString(PyObject *string);
@@ -127,7 +131,7 @@ def add_exception_handling(name, errcond=ffi.NULL):
         res = fn(*args)
         if errcond == res:
             py_exc_type = lib.PyErr_Occurred()
-            if py_exc_type is None:
+            if py_exc_type == ffi.NULL:
                 # Some functions return NULL without raising an exception,
                 # but also can raise an exception
                 # (and also return NULL in this case).
@@ -197,6 +201,8 @@ for args in [
         ('PyObject_SetItem', -1),
         ('PyObject_DelItem', -1),
         ('PyObject_Size', int(ffi.cast('Py_ssize_t', -1))),
+        'PyObject_GetIter',
+        'PyIter_Next',
         'PyString_AsString',
         'PyString_FromString',
         'PyUnicode_AsUTF8String', # ? docs say nothing about these two

@@ -87,6 +87,14 @@ class MetabiosisWrapper(object):
     def __len__(self):
         return lib.PyObject_Size(self.obj)
 
+    def __iter__(self):
+        py_iter = ffi.gc(lib.PyObject_GetIter(self.obj), lib.Py_DECREF)
+        while True:
+            py_next = lib.PyIter_Next(py_iter)
+            if py_next is None:
+                break
+            yield pypy_convert(py_next)
+
     def __call__(self, *args, **kwargs):
         arguments_tuple = convert_tuple(args)
 
