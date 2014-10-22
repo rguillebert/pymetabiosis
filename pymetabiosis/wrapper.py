@@ -1,12 +1,18 @@
 import operator
+import types
 import pymetabiosis.module
 from pymetabiosis.bindings import lib, ffi
 
 def convert(obj):
     return pypy_to_cpy_converters[type(obj)](obj)
 
-def convert_string(str):
-    return ffi.gc(lib.PyString_FromString(ffi.new("char[]", str)), lib.Py_DECREF)
+def convert_string(s):
+    return ffi.gc(lib.PyString_FromString(ffi.new("char[]", s)), lib.Py_DECREF)
+
+def convert_unicode(u):
+    return ffi.gc(
+            lib.PyUnicode_FromString(ffi.new("char[]", u.encode('utf-8'))),
+            lib.Py_DECREF)
 
 def convert_tuple(obj):
     values = [convert(value) for value in obj]
@@ -16,6 +22,16 @@ def convert_tuple(obj):
 def convert_int(obj):
     return ffi.gc(lib.PyInt_FromLong(obj), lib.Py_DECREF)
 
+def convert_bool(obj):
+    return ffi.gc(lib.Py_True, lib.Py_DECREF) \
+            if obj else ffi.gc(lib.Py_False, lib.Py_DECREF)
+
+def convert_None(obj):
+    return ffi.gc(lib.Py_None, lib.Py_DECREF) # FIXME - check docs
+
+def convert_float(obj):
+    return ffi.gc(lib.PyFloat_FromDouble(obj), lib.Py_DECREF)
+
 def convert_dict(obj):
     dict = ffi.gc(lib.PyDict_New(), lib.Py_DECREF)
 
@@ -23,6 +39,12 @@ def convert_dict(obj):
         lib.PyDict_SetItem(dict, convert(key), convert(value))
 
     return dict
+
+def convert_list(obj):
+    lst = ffi.gc(lib.PyList_New(len(obj)), lib.Py_DECREF)
+    for i, x in enumerate(obj):
+        lib.PyList_SetItem(lst, i, convert(x))
+    return lst
 
 class MetabiosisWrapper(object):
     def __init__(self, obj):
@@ -79,17 +101,66 @@ def pypy_convert(obj):
 def pypy_convert_int(obj):
     return int(lib.PyLong_AsLong(obj))
 
+def pypy_convert_bool(obj):
+    return obj == lib.Py_True
+
+def pypy_convert_None(obj):
+    assert obj is None
+    return None
+
+def pypy_convert_float(obj):
+    return float(lib.PyFloat_AsDouble(obj))
+
+def pypy_convert_string(obj):
+    return ffi.string(lib.PyString_AsString(obj))
+
+def pypy_convert_unicode(obj):
+    return pypy_convert_string(lib.PyUnicode_AsUTF8String(obj))\
+            .decode('utf-8')
+
+def pypy_convert_tuple(obj):
+    return tuple(
+            pypy_convert(lib.PyTuple_GetItem(obj, i))
+            for i in xrange(lib.PyTuple_Size(obj)))
+
+def pypy_convert_dict(obj):
+    items = ffi.gc(lib.PyDict_Items(obj), lib.Py_DECREF)
+    return dict(pypy_convert_list(items))
+
+def pypy_convert_list(obj):
+    return [pypy_convert(lib.PyList_GetItem(obj, i))
+            for i in xrange(lib.PyList_Size(obj))]
+
+
 pypy_to_cpy_converters = {
-    str : convert_string,
     MetabiosisWrapper : operator.attrgetter("obj"),
-    tuple : convert_tuple,
     int : convert_int,
+    float : convert_float,
+    str : convert_string,
+    unicode : convert_unicode,
+    tuple : convert_tuple,
     dict : convert_dict,
+    list : convert_list,
+    bool : convert_bool,
+    types.NoneType: convert_None,
 }
+cpy_to_pypy_converters = {}
+
 
 def init_cpy_to_pypy_converters():
     global cpy_to_pypy_converters
 
     builtin = pymetabiosis.module.import_module("__builtin__")
+    types = pymetabiosis.module.import_module("types")
 
-    cpy_to_pypy_converters = {builtin.int.obj : pypy_convert_int}
+    cpy_to_pypy_converters = {
+            builtin.int.obj : pypy_convert_int,
+            builtin.float.obj : pypy_convert_float,
+            builtin.str.obj : pypy_convert_string,
+            builtin.unicode.obj : pypy_convert_unicode,
+            builtin.tuple.obj : pypy_convert_tuple,
+            builtin.dict.obj : pypy_convert_dict,
+            builtin.list.obj : pypy_convert_list,
+            builtin.bool.obj : pypy_convert_bool,
+            types.NoneType.obj : pypy_convert_None,
+            }
