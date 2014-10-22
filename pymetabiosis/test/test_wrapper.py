@@ -74,6 +74,56 @@ def test_convert_return_value():
     assert operator.eq(None, None) is True
     assert operator.eq(None, False) is False
 
+def test_getitem_setitem_delitem():
+    builtin = import_module("__builtin__", noconvert=True)
+
+    d = builtin.dict({1: 'foo', (1, 'a'): 'zoo'})
+    with pytest.raises(KeyError):
+        d[2]
+    assert pypy_convert(d[1].obj) == 'foo'
+    assert pypy_convert(d[(1, 'a')].obj) == 'zoo'
+
+    key, lst = (1, 2), ['a', 'b']
+    d[key] = lst
+    assert pypy_convert(d[key].obj) == lst
+
+    with pytest.raises(TypeError):
+        d[[1, 2]] = 0
+
+    del d[1]
+    with pytest.raises(KeyError):
+        d[1]
+
+    with pytest.raises(KeyError):
+        del d[2]
+
+def test_str_repr_dir():
+    builtin = import_module("__builtin__", noconvert=True)
+
+    assert str(builtin.None) == 'None'
+    assert str(builtin.str('a')) == 'a'
+    assert repr(builtin.str('a')) == "'a'"
+
+    assert set(['rjust', 'rpartition', 'rstrip', '__le__'])\
+            .issubset(dir(builtin.str('a')))
+
+def test_len():
+    builtin = import_module("__builtin__", noconvert=True)
+    lst = builtin.list([1, 'a'])
+    assert len(lst) == 2
+    assert len(builtin.list()) == 0
+    assert len(builtin.str('abc')) == 3
+
+    with pytest.raises(TypeError):
+        len(builtin.iter([1]))
+
+def test_iter():
+    builtin = import_module("__builtin__", noconvert=True)
+    assert [pypy_convert(x.obj) for x in builtin.list([1, 'a'])] == [1, 'a']
+    assert pypy_convert(list(builtin.iter(['a']))[0].obj) == 'a'
+    with pytest.raises(TypeError):
+        builtin.iter(1)
+
 def test_exceptions():
     builtin = import_module("__builtin__")
 
