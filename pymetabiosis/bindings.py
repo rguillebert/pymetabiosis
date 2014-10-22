@@ -60,9 +60,9 @@ ffi.cdef("""
          PyObject* const PyExc_ValueError;
          PyObject* const PyExc_ZeroDivisionError;
 
+         // Object: https://docs.python.org/2/c-api/object.html
          PyObject* PyObject_Str(PyObject *o);
          PyObject* PyObject_Repr(PyObject *o);
-
          PyObject* PyObject_Call(PyObject *callable_object, PyObject *args, PyObject *kw);
          PyObject* PyObject_GetAttrString(PyObject *o, const char *attr_name);
 
@@ -184,6 +184,10 @@ exception_by_py_exc =  dict(exceptions)
 
 for args in [
         'PyImport_ImportModule',
+        'PyObject_Str',
+        'PyObject_Repr',
+        'PyObject_Call',
+        'PyObject_GetAttrString',
         ]:
     if not isinstance(args, tuple):
         args = (args,)
