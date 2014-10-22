@@ -54,7 +54,15 @@ class MetabiosisWrapper(object):
 
     def __repr__(self):
         py_str = ffi.gc(lib.PyObject_Repr(self.obj), lib.Py_DECREF)
-        return pypy_convert_string(py_str)
+        return pypy_convert(py_str)
+
+    def __str__(self):
+        py_str = ffi.gc(lib.PyObject_Str(self.obj), lib.Py_DECREF)
+        return pypy_convert(py_str)
+
+    def __dir__(self):
+        py_lst = ffi.gc(lib.PyObject_Dir(self.obj), lib.Py_DECREF)
+        return pypy_convert(py_lst)
 
     def __getattr__(self, name):
         c_name = ffi.new("char[]", name)

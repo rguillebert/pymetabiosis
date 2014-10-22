@@ -90,6 +90,16 @@ def test_getitem_setitem():
     with pytest.raises(TypeError):
         d[[1, 2]] = 0
 
+def test_str_repr_dir():
+    builtin = import_module("__builtin__", noconvert=True)
+
+    assert str(builtin.None) == 'None'
+    assert str(builtin.str('a')) == 'a'
+    assert repr(builtin.str('a')) == "'a'"
+
+    assert set(['rjust', 'rpartition', 'rstrip', '__le__'])\
+            .issubset(dir(builtin.str('a')))
+
 def test_exceptions():
     builtin = import_module("__builtin__")
 

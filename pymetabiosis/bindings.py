@@ -63,6 +63,7 @@ ffi.cdef("""
          // Object: https://docs.python.org/2/c-api/object.html
          PyObject* PyObject_Str(PyObject *o);
          PyObject* PyObject_Repr(PyObject *o);
+         PyObject* PyObject_Dir(PyObject *o);
          PyObject* PyObject_Call(PyObject *callable_object, PyObject *args, PyObject *kw);
          PyObject* PyObject_GetAttrString(PyObject *o, const char *attr_name);
          PyObject* PyObject_GetItem(PyObject *o, PyObject *key);
