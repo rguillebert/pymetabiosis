@@ -74,6 +74,22 @@ def test_convert_return_value():
     assert operator.eq(None, None) is True
     assert operator.eq(None, False) is False
 
+def test_getitem_setitem():
+    builtin = import_module("__builtin__", noconvert=True)
+
+    d = builtin.dict({1: 'foo', (1, 'a'): 'zoo'})
+    with pytest.raises(KeyError):
+        d[2]
+    assert d[1] == 'foo'
+    assert d[(1, 'a')] == 'zoo'
+
+    key, lst = (1, 2), ['a', 'b']
+    d[key] = lst
+    assert d[key] == lst
+
+    with pytest.raises(TypeError):
+        d[[1, 2]] = 0
+
 def test_exceptions():
     builtin = import_module("__builtin__")
 

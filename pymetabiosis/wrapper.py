@@ -63,6 +63,16 @@ class MetabiosisWrapper(object):
                 lib.Py_DECREF)
         return MetabiosisWrapper(py_attr, self.noconvert)
 
+    def __getitem__(self, key):
+        py_res = ffi.gc(
+                lib.PyObject_GetItem(self.obj, convert(key)),
+                lib.Py_DECREF)
+        # TODO - respect self.noconvert ?
+        return pypy_convert(py_res)
+
+    def __setitem__(self, key, value):
+        lib.PyObject_SetItem(self.obj, convert(key), convert(value))
+
     def __call__(self, *args, **kwargs):
         arguments_tuple = convert_tuple(args)
 
