@@ -47,8 +47,9 @@ def convert_list(obj):
     return lst
 
 class MetabiosisWrapper(object):
-    def __init__(self, obj):
+    def __init__(self, obj, noconvert=False):
         self.obj = obj
+        self.noconvert = noconvert
 
     def __repr__(self):
         py_str = lib.PyObject_Repr(self.obj)
@@ -65,7 +66,7 @@ class MetabiosisWrapper(object):
         if py_attr == ffi.NULL:
             lib.PyErr_Print()
             raise Exception()
-        return MetabiosisWrapper(ffi.gc(py_attr, lib.Py_DECREF))
+        return MetabiosisWrapper(ffi.gc(py_attr, lib.Py_DECREF), self.noconvert)
 
     def __call__(self, *args, **kwargs):
         arguments_tuple = convert_tuple(args)
@@ -82,7 +83,10 @@ class MetabiosisWrapper(object):
             lib.PyErr_Print()
             raise Exception()
 
-        return pypy_convert(return_value)
+        if self.noconvert:
+            return MetabiosisWrapper(return_value, self.noconvert)
+        else:
+            return pypy_convert(return_value)
 
     def get_type(self):
         typeobject = ffi.cast("PyObject*", self.obj.ob_type)

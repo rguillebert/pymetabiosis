@@ -1,6 +1,6 @@
 # encoding: utf-8
 from pymetabiosis.module import import_module
-from pymetabiosis.wrapper import MetabiosisWrapper
+from pymetabiosis.wrapper import MetabiosisWrapper, pypy_convert
 
 def test_getattr_on_module():
     sqlite = import_module("sqlite3")
@@ -72,3 +72,15 @@ def test_convert_return_value():
     assert builtin.bool(None) is False
     assert operator.eq(None, None) is True
     assert operator.eq(None, False) is False
+
+def test_no_convert():
+    operator = import_module("operator")
+    functools = import_module("functools")
+    builtin = import_module("__builtin__", noconvert=True)
+
+    lst = builtin.list()
+
+    part = functools.partial(operator.iadd, lst)
+    part([1, 2, 3])
+
+    assert pypy_convert(lst.obj) == [1, 2, 3]
