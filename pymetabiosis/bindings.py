@@ -65,6 +65,8 @@ ffi.cdef("""
          PyObject* const Py_False;
          PyObject* const Py_True;
 
+         PyObject* const Py_None;
+
          // Float: https://docs.python.org/2/c-api/float.html
          PyObject* PyFloat_FromDouble(double dval);
          double PyFloat_AsDouble(PyObject *obj);

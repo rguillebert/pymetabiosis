@@ -46,6 +46,7 @@ def test_gettype():
 
 def test_convert_return_value():
     builtin = import_module("__builtin__")
+    operator = import_module("operator")
 
     assert builtin.int(32) == 32
     assert builtin.float(3.123) == 3.123
@@ -67,3 +68,7 @@ def test_convert_return_value():
 
     assert builtin.bool(True) is True
     assert builtin.bool(False) is False
+
+    assert builtin.bool(None) is False
+    assert operator.eq(None, None) is True
+    assert operator.eq(None, False) is False

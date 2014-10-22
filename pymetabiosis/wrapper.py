@@ -1,4 +1,5 @@
 import operator
+import types
 import pymetabiosis.module
 from pymetabiosis.bindings import lib, ffi
 
@@ -24,6 +25,9 @@ def convert_int(obj):
 def convert_bool(obj):
     return ffi.gc(lib.Py_True, lib.Py_DECREF) \
             if obj else ffi.gc(lib.Py_False, lib.Py_DECREF)
+
+def convert_None(obj):
+    return ffi.gc(lib.Py_None, lib.Py_DECREF) # FIXME - check docs
 
 def convert_float(obj):
     return ffi.gc(lib.PyFloat_FromDouble(obj), lib.Py_DECREF)
@@ -100,6 +104,10 @@ def pypy_convert_int(obj):
 def pypy_convert_bool(obj):
     return obj == lib.Py_True
 
+def pypy_convert_None(obj):
+    assert obj is None
+    return None
+
 def pypy_convert_float(obj):
     return float(lib.PyFloat_AsDouble(obj))
 
@@ -134,6 +142,7 @@ pypy_to_cpy_converters = {
     dict : convert_dict,
     list : convert_list,
     bool : convert_bool,
+    types.NoneType: convert_None,
 }
 cpy_to_pypy_converters = {}
 
@@ -142,6 +151,7 @@ def init_cpy_to_pypy_converters():
     global cpy_to_pypy_converters
 
     builtin = pymetabiosis.module.import_module("__builtin__")
+    types = pymetabiosis.module.import_module("types")
 
     cpy_to_pypy_converters = {
             builtin.int.obj : pypy_convert_int,
@@ -152,4 +162,5 @@ def init_cpy_to_pypy_converters():
             builtin.dict.obj : pypy_convert_dict,
             builtin.list.obj : pypy_convert_list,
             builtin.bool.obj : pypy_convert_bool,
+            types.NoneType.obj : pypy_convert_None,
             }
