@@ -105,7 +105,6 @@ def pypy_convert_bool(obj):
     return obj == lib.Py_True
 
 def pypy_convert_None(obj):
-    assert obj is None
     return None
 
 def pypy_convert_float(obj):
