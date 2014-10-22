@@ -81,7 +81,7 @@ def test_exceptions():
         builtin.foo
 
     with pytest.raises(ValueError): # TODO UnicodeDecodeError
-        print builtin.unicode('\124\323')
+        builtin.unicode('\124\323')
 
 def test_no_convert():
     operator = import_module("operator")
