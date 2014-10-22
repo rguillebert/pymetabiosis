@@ -75,8 +75,7 @@ class MetabiosisWrapper(object):
         py_res = ffi.gc(
                 lib.PyObject_GetItem(self.obj, convert(key)),
                 lib.Py_DECREF)
-        # TODO - respect self.noconvert ?
-        return pypy_convert(py_res)
+        return self._maybe_pypy_convert(py_res)
 
     def __setitem__(self, key, value):
         lib.PyObject_SetItem(self.obj, convert(key), convert(value))
@@ -93,7 +92,7 @@ class MetabiosisWrapper(object):
             py_next = lib.PyIter_Next(py_iter)
             if py_next is None:
                 break
-            yield pypy_convert(py_next)
+            yield self._maybe_pypy_convert(py_next)
 
     def __call__(self, *args, **kwargs):
         arguments_tuple = convert_tuple(args)
@@ -106,10 +105,7 @@ class MetabiosisWrapper(object):
                 lib.PyObject_Call(self.obj, arguments_tuple, keywordargs),
                 lib.Py_DECREF)
 
-        if self.noconvert:
-            return MetabiosisWrapper(return_value, self.noconvert)
-        else:
-            return pypy_convert(return_value)
+        return self._maybe_pypy_convert(return_value)
 
     def get_type(self):
         typeobject = ffi.cast("PyObject*", self.obj.ob_type)
@@ -117,6 +113,12 @@ class MetabiosisWrapper(object):
         lib.Py_INCREF(typeobject)
 
         return MetabiosisWrapper(ffi.gc(typeobject, lib.Py_DECREF))
+
+    def _maybe_pypy_convert(self, py_obj):
+        if self.noconvert:
+            return MetabiosisWrapper(py_obj, self.noconvert)
+        else:
+            return pypy_convert(py_obj)
 
 
 def pypy_convert(obj):

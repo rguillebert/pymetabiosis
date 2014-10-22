@@ -80,12 +80,12 @@ def test_getitem_setitem_delitem():
     d = builtin.dict({1: 'foo', (1, 'a'): 'zoo'})
     with pytest.raises(KeyError):
         d[2]
-    assert d[1] == 'foo'
-    assert d[(1, 'a')] == 'zoo'
+    assert pypy_convert(d[1].obj) == 'foo'
+    assert pypy_convert(d[(1, 'a')].obj) == 'zoo'
 
     key, lst = (1, 2), ['a', 'b']
     d[key] = lst
-    assert d[key] == lst
+    assert pypy_convert(d[key].obj) == lst
 
     with pytest.raises(TypeError):
         d[[1, 2]] = 0
@@ -119,8 +119,8 @@ def test_len():
 
 def test_iter():
     builtin = import_module("__builtin__", noconvert=True)
-    assert list(builtin.list([1, 'a'])) == [1, 'a']
-    assert list(builtin.iter(['a'])) == ['a']
+    assert [pypy_convert(x.obj) for x in builtin.list([1, 'a'])] == [1, 'a']
+    assert pypy_convert(list(builtin.iter(['a']))[0].obj) == 'a'
 
 def test_exceptions():
     builtin = import_module("__builtin__")
