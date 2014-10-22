@@ -1,7 +1,7 @@
 # encoding: utf-8
 import pytest
 from pymetabiosis.module import import_module
-from pymetabiosis.wrapper import MetabiosisWrapper, pypy_convert
+from pymetabiosis.wrapper import MetabiosisWrapper, pypy_convert, applevel
 
 def test_getattr_on_module():
     sqlite = import_module("sqlite3")
@@ -144,6 +144,14 @@ def test_no_convert():
     part([1, 2, 3])
 
     assert pypy_convert(lst.obj) == [1, 2, 3]
+
+def test_applevel():
+    fn = applevel('''
+def f():
+    return 3
+return f
+''', noconvert=False)
+    assert fn() == 3
 
 def test_opaque_objects():
 

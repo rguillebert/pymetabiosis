@@ -23,6 +23,11 @@ ffi.cdef("""
          void Py_DECREF(PyObject *o);
          void Py_XDECREF(PyObject *o);
 
+         const int Py_file_input;
+         PyObject* Py_CompileString(const char *str, const char *filename, int start);
+         PyObject* PyEval_GetBuiltins();
+         PyObject* PyEval_EvalCode(PyObject *co, PyObject *globals, PyObject *locals);
+
          // Importing: https://docs.python.org/2/c-api/import.html
          PyObject* PyImport_ImportModule(const char *name);
 
@@ -97,6 +102,7 @@ ffi.cdef("""
          // Dict: https://docs.python.org/2/c-api/dict.html
          PyObject* PyDict_New();
          int PyDict_SetItem(PyObject *p, PyObject *key, PyObject *val);
+         int PyDict_SetItemString(PyObject *p, const char *key, PyObject *val);
          PyObject* PyDict_Items(PyObject *p);
 
          // Integer: http://docs.python.org/2/c-api/int.html
@@ -214,6 +220,7 @@ for args in [
         ('PyList_SetItem', -1),
         'PyDict_New',
         ('PyDict_SetItem', -1),
+        ('PyDict_SetItemString', -1),
         ('PyLong_AsLong', -1),
         'PyFloat_FromDouble',
         ('PyFloat_FromDouble', -1.0),

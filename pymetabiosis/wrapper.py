@@ -3,8 +3,14 @@ import types
 import pymetabiosis.module
 from pymetabiosis.bindings import lib, ffi
 
+
 def convert(obj):
-    return pypy_to_cpy_converters[type(obj)](obj)
+    try:
+        converter = pypy_to_cpy_converters[type(obj)]
+    except KeyError:
+        raise
+    else:
+        return converter(obj)
 
 def convert_string(s):
     return ffi.gc(lib.PyString_FromString(ffi.new("char[]", s)), lib.Py_DECREF)
@@ -193,3 +199,22 @@ def init_cpy_to_pypy_converters():
             builtin.bool.obj : pypy_convert_bool,
             types.NoneType.obj : pypy_convert_None,
             }
+
+
+def applevel(code, noconvert=False):
+    code = '\n'.join(['    ' + line for line in code.split('\n') if line])
+    code = 'def anonymous():\n' + code
+    py_code = ffi.gc(
+            lib.Py_CompileString(code, 'exec', lib.Py_file_input),
+            lib.Py_DECREF)
+    lib.Py_INCREF(py_code)
+    py_elem = lib.PyObject_GetAttrString(py_code, 'co_consts')
+    lib.Py_INCREF(py_elem)
+    py_zero = ffi.gc(lib.PyInt_FromLong(0), lib.Py_DECREF)
+    py_item = lib.PyObject_GetItem(py_elem, py_zero)
+    py_locals = ffi.gc(lib.PyDict_New(), lib.Py_DECREF)
+    py_globals = ffi.gc(lib.PyDict_New(), lib.Py_DECREF)
+    py_bltns = lib.PyEval_GetBuiltins()
+    lib.PyDict_SetItemString(py_globals, '__builtins__', py_bltns)
+    py_res = lib.PyEval_EvalCode(py_item, py_globals, py_locals)
+    return MetabiosisWrapper(py_res, noconvert=noconvert)
