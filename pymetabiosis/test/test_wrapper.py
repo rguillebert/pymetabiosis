@@ -1,4 +1,5 @@
 # encoding: utf-8
+import pytest
 from pymetabiosis.module import import_module
 from pymetabiosis.wrapper import MetabiosisWrapper
 
@@ -72,3 +73,13 @@ def test_convert_return_value():
     assert builtin.bool(None) is False
     assert operator.eq(None, None) is True
     assert operator.eq(None, False) is False
+
+
+def test_exceptions():
+    builtin = import_module("__builtin__")
+
+    with pytest.raises(AttributeError):
+        builtin.foo
+
+    with pytest.raises(ValueError): # TODO UnicodeDecodeError
+        print builtin.unicode('\124\323')

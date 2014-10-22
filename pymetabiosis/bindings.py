@@ -188,6 +188,20 @@ for args in [
         'PyObject_Repr',
         'PyObject_Call',
         'PyObject_GetAttrString',
+        'PyString_AsString',
+        'PyString_FromString',
+        'PyUnicode_AsUTF8String', # ? docs say nothing about these two
+        'PyUnicode_FromString',
+        'PyTuple_Pack',
+        'PyTuple_GetItem',
+        'PyList_New',
+        'PyList_GetItem',
+        ('PyList_SetItem', -1),
+        'PyDict_New',
+        ('PyDict_SetItem', -1),
+        ('PyLong_AsLong', -1),
+        'PyFloat_FromDouble',
+        ('PyFloat_FromDouble', -1.0),
         ]:
     if not isinstance(args, tuple):
         args = (args,)
