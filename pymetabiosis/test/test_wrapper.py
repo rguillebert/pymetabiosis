@@ -144,3 +144,24 @@ def test_no_convert():
     part([1, 2, 3])
 
     assert pypy_convert(lst.obj) == [1, 2, 3]
+
+def test_opaque_objects():
+
+    class Point(object):
+        def __init__(self, x, y):
+            self.x = x
+            self.y = y
+
+    builtin = import_module("__builtin__")
+    builtin_noconvert = import_module("__builtin__", noconvert=True)
+    p1, p2 = Point(1.0, 2.0), Point(3.0, -1.0)
+
+    lst = builtin.list([p1, p2])
+    assert lst == [p1, p2]
+
+    lst_cpy = builtin_noconvert.list([p1, p2])
+    assert lst[0] == p1
+    assert lst[1] == p2
+    lst_cpy.reverse()
+    assert lst[1] == p1
+    assert lst[0] == p2
