@@ -121,6 +121,8 @@ def test_iter():
     builtin = import_module("__builtin__", noconvert=True)
     assert [pypy_convert(x.obj) for x in builtin.list([1, 'a'])] == [1, 'a']
     assert pypy_convert(list(builtin.iter(['a']))[0].obj) == 'a'
+    with pytest.raises(TypeError):
+        builtin.iter(1)
 
 def test_exceptions():
     builtin = import_module("__builtin__")
