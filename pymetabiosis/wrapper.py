@@ -81,6 +81,9 @@ class MetabiosisWrapper(object):
     def __setitem__(self, key, value):
         lib.PyObject_SetItem(self.obj, convert(key), convert(value))
 
+    def __delitem__(self, key):
+        lib.PyObject_DelItem(self.obj, convert(key))
+
     def __call__(self, *args, **kwargs):
         arguments_tuple = convert_tuple(args)
 
