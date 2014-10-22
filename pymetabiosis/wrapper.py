@@ -46,13 +46,14 @@ def convert_list(obj):
         lib.PyList_SetItem(lst, i, convert(x))
     return lst
 
+
 class MetabiosisWrapper(object):
     def __init__(self, obj):
         self.obj = obj
 
     def __repr__(self):
         py_str = ffi.gc(lib.PyObject_Repr(self.obj), lib.Py_DECREF)
-        return ffi.string(lib.PyString_AsString(py_str))
+        return pypy_convert_string(py_str)
 
     def __getattr__(self, name):
         c_name = ffi.new("char[]", name)
