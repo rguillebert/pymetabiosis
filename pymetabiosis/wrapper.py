@@ -8,6 +8,8 @@ def convert(obj):
     try:
         converter = pypy_to_cpy_converters[type(obj)]
     except KeyError:
+        if getattr(obj, '_pymetabiosis_wrap', None):
+            return convert_unknown(obj)
         raise
     else:
         return converter(obj)
@@ -131,6 +133,8 @@ def pypy_convert(obj):
     type = MetabiosisWrapper(obj).get_type().obj
     if type in cpy_to_pypy_converters:
         return cpy_to_pypy_converters[type](obj)
+    elif type == ApplevelWrapped.obj:
+        return _obj_by_applevel[obj]
     else:
         return MetabiosisWrapper(obj)
 
@@ -218,3 +222,21 @@ def applevel(code, noconvert=False):
     lib.PyDict_SetItemString(py_globals, '__builtins__', py_bltns)
     py_res = lib.PyEval_EvalCode(py_item, py_globals, py_locals)
     return MetabiosisWrapper(py_res, noconvert=noconvert)
+
+ApplevelWrapped = applevel('''
+class ApplevelWrapped(object):
+    pass
+return ApplevelWrapped
+''', noconvert=True)
+
+_applevel_by_obj = {}
+_obj_by_applevel = {}
+
+def convert_unknown(obj):
+    aw = _applevel_by_obj.get(obj)
+    if aw is None:
+        aw = ApplevelWrapped().obj
+        _applevel_by_obj[obj] = aw
+        _obj_by_applevel[aw] = obj
+    lib.Py_INCREF(aw)
+    return aw

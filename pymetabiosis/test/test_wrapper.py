@@ -156,6 +156,7 @@ return f
 def test_opaque_objects():
 
     class Point(object):
+        _pymetabiosis_wrap = True
         def __init__(self, x, y):
             self.x = x
             self.y = y
@@ -168,8 +169,8 @@ def test_opaque_objects():
     assert lst == [p1, p2]
 
     lst_cpy = builtin_noconvert.list([p1, p2])
-    assert lst[0] == p1
-    assert lst[1] == p2
+    assert lst_cpy[0] == p1
+    assert lst_cpy[1] == p2
     lst_cpy.reverse()
-    assert lst[1] == p1
-    assert lst[0] == p2
+    assert lst_cpy[1] == p1
+    assert lst_cpy[0] == p2
