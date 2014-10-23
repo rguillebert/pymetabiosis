@@ -35,7 +35,7 @@ def convert_bool(obj):
             if obj else ffi.gc(lib.Py_False, lib.Py_DECREF)
 
 def convert_None(obj):
-    return ffi.gc(lib.Py_None, lib.Py_DECREF) # FIXME - check docs
+    return ffi.gc(lib.Py_None, lib.Py_DECREF)
 
 def convert_float(obj):
     return ffi.gc(lib.PyFloat_FromDouble(obj), lib.Py_DECREF)
