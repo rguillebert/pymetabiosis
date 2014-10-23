@@ -94,6 +94,9 @@ class MetabiosisWrapper(object):
     def __len__(self):
         return lib.PyObject_Size(self.obj)
 
+    def __nonzero__(self):
+        return lib.PyObject_IsTrue(self.obj) == 1
+
     def __iter__(self):
         py_iter = ffi.gc(lib.PyObject_GetIter(self.obj), lib.Py_DECREF)
         while True:

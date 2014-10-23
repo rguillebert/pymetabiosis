@@ -117,6 +117,13 @@ def test_len():
     with pytest.raises(TypeError):
         len(builtin.iter([1]))
 
+def test_bool():
+    builtin = import_module("__builtin__", noconvert=True)
+    true = builtin.bool(True)
+    false = builtin.bool(False)
+    assert bool(true) is True
+    assert bool(false) is False
+
 def test_iter():
     builtin = import_module("__builtin__", noconvert=True)
     assert [pypy_convert(x.obj) for x in builtin.list([1, 'a'])] == [1, 'a']
