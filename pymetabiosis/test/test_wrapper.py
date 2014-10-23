@@ -124,12 +124,22 @@ def test_bool():
     assert bool(true) is True
     assert bool(false) is False
 
+def test_slice():
+    builtin = import_module("__builtin__", noconvert=True)
+    lst = builtin.list(list(xrange(10)))
+    assert _pypy_convert_list(lst[-1:]) == [9]
+    assert _pypy_convert_list(lst[:2]) == [0, 1]
+    assert _pypy_convert_list(lst[-9:3]) == [1, 2]
+
 def test_iter():
     builtin = import_module("__builtin__", noconvert=True)
-    assert [pypy_convert(x.obj) for x in builtin.list([1, 'a'])] == [1, 'a']
-    assert pypy_convert(list(builtin.iter(['a']))[0].obj) == 'a'
+    assert _pypy_convert_list(builtin.list([1, 'a'])) == [1, 'a']
+    assert _pypy_convert_list(builtin.iter(['a'])) == ['a']
     with pytest.raises(TypeError):
         builtin.iter(1)
+
+def _pypy_convert_list(lst):
+    return [pypy_convert(x.obj) for x in lst]
 
 def test_exceptions():
     builtin = import_module("__builtin__")

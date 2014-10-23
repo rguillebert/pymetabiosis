@@ -54,6 +54,12 @@ def convert_list(obj):
         lib.PyList_SetItem(lst, i, convert(x))
     return lst
 
+def convert_slice(obj):
+    return ffi.gc(
+            lib.PySlice_New(
+                convert(obj.start), convert(obj.stop), convert(obj.step)),
+            lib.Py_DECREF)
+
 
 class MetabiosisWrapper(object):
     def __init__(self, obj, noconvert=False):
@@ -183,6 +189,7 @@ pypy_to_cpy_converters = {
     tuple : convert_tuple,
     dict : convert_dict,
     list : convert_list,
+    slice : convert_slice,
     bool : convert_bool,
     types.NoneType: convert_None,
 }

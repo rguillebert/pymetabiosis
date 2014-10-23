@@ -106,6 +106,9 @@ ffi.cdef("""
          int PyDict_SetItemString(PyObject *p, const char *key, PyObject *val);
          PyObject* PyDict_Items(PyObject *p);
 
+         // Slice: https://docs.python.org/2/c-api/slice.html
+         PyObject* PySlice_New(PyObject *start, PyObject *stop, PyObject *step);
+
          // Integer: http://docs.python.org/2/c-api/int.html
          PyObject* PyInt_FromLong(long ival);
          long PyLong_AsLong(PyObject *obj);
