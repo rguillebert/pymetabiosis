@@ -124,6 +124,12 @@ def test_bool():
     assert bool(true) is True
     assert bool(false) is False
 
+def test_type():
+    builtin = import_module("__builtin__")
+    assert builtin.type(10) is int
+    for _type in [float, int, bool, str, unicode]:
+        assert builtin.str(_type) == repr(_type)
+
 def test_slice():
     builtin = import_module("__builtin__", noconvert=True)
     lst = builtin.list(list(xrange(10)))
