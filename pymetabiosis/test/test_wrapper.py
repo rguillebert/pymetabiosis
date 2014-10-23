@@ -169,8 +169,8 @@ def test_opaque_objects():
     assert lst == [p1, p2]
 
     lst_cpy = builtin_noconvert.list([p1, p2])
-    assert lst_cpy[0] == p1
-    assert lst_cpy[1] == p2
+    assert pypy_convert(lst_cpy[0].obj) == p1
+    assert pypy_convert(lst_cpy[1].obj) == p2
     lst_cpy.reverse()
-    assert lst_cpy[1] == p1
-    assert lst_cpy[0] == p2
+    assert pypy_convert(lst_cpy[1].obj) == p1
+    assert pypy_convert(lst_cpy[0].obj) == p2
