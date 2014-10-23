@@ -5,13 +5,10 @@ from pymetabiosis.bindings import lib, ffi
 
 
 def convert(obj):
-    try:
-        converter = pypy_to_cpy_converters[type(obj)]
-    except KeyError:
-        pass
-    else:
+    _type = type(obj)
+    if _type in pypy_to_cpy_converters:
         try:
-            return converter(obj)
+            return pypy_to_cpy_converters[_type](obj)
         except NoConvertError:
             pass
     if getattr(obj, '_pymetabiosis_wrap', None):
