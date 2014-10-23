@@ -3,8 +3,16 @@ import types
 import pymetabiosis.module
 from pymetabiosis.bindings import lib, ffi
 
+
 def convert(obj):
-    return pypy_to_cpy_converters[type(obj)](obj)
+    try:
+        converter = pypy_to_cpy_converters[type(obj)]
+    except KeyError:
+        if getattr(obj, '_pymetabiosis_wrap', None):
+            return convert_unknown(obj)
+        raise
+    else:
+        return converter(obj)
 
 def convert_string(s):
     return ffi.gc(lib.PyString_FromString(ffi.new("char[]", s)), lib.Py_DECREF)
@@ -23,11 +31,13 @@ def convert_int(obj):
     return ffi.gc(lib.PyInt_FromLong(obj), lib.Py_DECREF)
 
 def convert_bool(obj):
-    return ffi.gc(lib.Py_True, lib.Py_DECREF) \
-            if obj else ffi.gc(lib.Py_False, lib.Py_DECREF)
+    py_obj = lib.Py_True if obj else lib.Py_False
+    lib.Py_INCREF(py_obj)
+    return ffi.gc(py_obj, lib.Py_DECREF)
 
 def convert_None(obj):
-    return ffi.gc(lib.Py_None, lib.Py_DECREF) # FIXME - check docs
+    lib.Py_INCREF(lib.Py_None)
+    return ffi.gc(lib.Py_None, lib.Py_DECREF)
 
 def convert_float(obj):
     return ffi.gc(lib.PyFloat_FromDouble(obj), lib.Py_DECREF)
@@ -125,6 +135,8 @@ def pypy_convert(obj):
     type = MetabiosisWrapper(obj).get_type().obj
     if type in cpy_to_pypy_converters:
         return cpy_to_pypy_converters[type](obj)
+    elif type == ApplevelWrapped.obj:
+        return _obj_by_applevel[obj]
     else:
         return MetabiosisWrapper(obj)
 
@@ -193,3 +205,40 @@ def init_cpy_to_pypy_converters():
             builtin.bool.obj : pypy_convert_bool,
             types.NoneType.obj : pypy_convert_None,
             }
+
+
+def applevel(code, noconvert=False):
+    code = '\n'.join(['    ' + line for line in code.split('\n') if line])
+    code = 'def anonymous():\n' + code
+    py_code = ffi.gc(
+            lib.Py_CompileString(code, 'exec', lib.Py_file_input),
+            lib.Py_DECREF)
+    lib.Py_INCREF(py_code)
+    py_elem = lib.PyObject_GetAttrString(py_code, 'co_consts')
+    lib.Py_INCREF(py_elem)
+    py_zero = ffi.gc(lib.PyInt_FromLong(0), lib.Py_DECREF)
+    py_item = lib.PyObject_GetItem(py_elem, py_zero)
+    py_locals = ffi.gc(lib.PyDict_New(), lib.Py_DECREF)
+    py_globals = ffi.gc(lib.PyDict_New(), lib.Py_DECREF)
+    py_bltns = lib.PyEval_GetBuiltins()
+    lib.PyDict_SetItemString(py_globals, '__builtins__', py_bltns)
+    py_res = lib.PyEval_EvalCode(py_item, py_globals, py_locals)
+    return MetabiosisWrapper(py_res, noconvert=noconvert)
+
+ApplevelWrapped = applevel('''
+class ApplevelWrapped(object):
+    pass
+return ApplevelWrapped
+''', noconvert=True)
+
+_applevel_by_obj = {}
+_obj_by_applevel = {}
+
+def convert_unknown(obj):
+    aw = _applevel_by_obj.get(obj)
+    if aw is None:
+        aw = ApplevelWrapped().obj
+        _applevel_by_obj[obj] = aw
+        _obj_by_applevel[aw] = obj
+    lib.Py_INCREF(aw)
+    return aw

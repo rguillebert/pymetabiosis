@@ -1,7 +1,7 @@
 # encoding: utf-8
 import pytest
 from pymetabiosis.module import import_module
-from pymetabiosis.wrapper import MetabiosisWrapper, pypy_convert
+from pymetabiosis.wrapper import MetabiosisWrapper, pypy_convert, applevel
 
 def test_getattr_on_module():
     sqlite = import_module("sqlite3")
@@ -144,3 +144,33 @@ def test_no_convert():
     part([1, 2, 3])
 
     assert pypy_convert(lst.obj) == [1, 2, 3]
+
+def test_applevel():
+    fn = applevel('''
+def f():
+    return 3
+return f
+''', noconvert=False)
+    assert fn() == 3
+
+def test_opaque_objects():
+
+    class Point(object):
+        _pymetabiosis_wrap = True
+        def __init__(self, x, y):
+            self.x = x
+            self.y = y
+
+    builtin = import_module("__builtin__")
+    builtin_noconvert = import_module("__builtin__", noconvert=True)
+    p1, p2 = Point(1.0, 2.0), Point(3.0, -1.0)
+
+    lst = builtin.list([p1, p2])
+    assert lst == [p1, p2]
+
+    lst_cpy = builtin_noconvert.list([p1, p2])
+    assert pypy_convert(lst_cpy[0].obj) == p1
+    assert pypy_convert(lst_cpy[1].obj) == p2
+    lst_cpy.reverse()
+    assert pypy_convert(lst_cpy[1].obj) == p1
+    assert pypy_convert(lst_cpy[0].obj) == p2
