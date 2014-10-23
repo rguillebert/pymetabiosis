@@ -79,6 +79,9 @@ class MetabiosisWrapper(object):
         return pypy_convert(py_lst)
 
     def __getattr__(self, name):
+        return self._getattr(name)
+
+    def _getattr(self, name):
         c_name = ffi.new("char[]", name)
         py_attr = ffi.gc(
                 lib.PyObject_GetAttrString(self.obj, c_name),
@@ -110,6 +113,9 @@ class MetabiosisWrapper(object):
             if py_next is None:
                 break
             yield self._maybe_pypy_convert(py_next)
+
+    def __invert__(self):
+        return self._getattr('__invert__')()
 
     def __call__(self, *args, **kwargs):
         arguments_tuple = convert_tuple(args)

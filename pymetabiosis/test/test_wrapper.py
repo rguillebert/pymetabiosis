@@ -131,6 +131,12 @@ def test_slice():
     assert _pypy_convert_list(lst[:2]) == [0, 1]
     assert _pypy_convert_list(lst[-9:3]) == [1, 2]
 
+def test_invert():
+    builtin = import_module("__builtin__", noconvert=True)
+    n = builtin.int(10)
+    assert isinstance(n, MetabiosisWrapper)
+    assert pypy_convert((~n).obj) == ~10
+
 def test_iter():
     builtin = import_module("__builtin__", noconvert=True)
     assert _pypy_convert_list(builtin.list([1, 'a'])) == [1, 'a']
