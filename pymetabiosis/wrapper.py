@@ -31,10 +31,12 @@ def convert_int(obj):
     return ffi.gc(lib.PyInt_FromLong(obj), lib.Py_DECREF)
 
 def convert_bool(obj):
-    return ffi.gc(lib.Py_True, lib.Py_DECREF) \
-            if obj else ffi.gc(lib.Py_False, lib.Py_DECREF)
+    py_obj = lib.Py_True if obj else lib.Py_False
+    lib.Py_INCREF(py_obj)
+    return ffi.gc(py_obj, lib.Py_DECREF)
 
 def convert_None(obj):
+    lib.Py_INCREF(lib.Py_None)
     return ffi.gc(lib.Py_None, lib.Py_DECREF)
 
 def convert_float(obj):
