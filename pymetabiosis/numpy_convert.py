@@ -1,5 +1,5 @@
 from pymetabiosis.module import import_module
-from pymetabiosis.wrapper import cpy_to_pypy_converters
+from pymetabiosis.wrapper import MetabiosisWrapper, cpy_to_pypy_converters
 
 
 def register_cpy_numpy_to_pypy_builtin_converters():
@@ -8,7 +8,7 @@ def register_cpy_numpy_to_pypy_builtin_converters():
     numpy = import_module("numpy")
     builtin = import_module("__builtin__", noconvert=True)
     def call_direct(f):
-        f.noconvert = False
+        f = MetabiosisWrapper(f.obj, noconvert=False)
         return lambda x: f._call((x,), args_kwargs_converted=True)
 
     cpy_to_pypy_converters.update({
