@@ -226,7 +226,7 @@ def test_callbacks_on_wrappers():
         Point(0, 1),
         Point(1, 2),
         Point(3, 4)]
-    lst = builtin.list([p3, p3, p1, p4])
+    lst = builtin.list([p3, p2, p1, p4])
     lst.sort(key=lambda x: x.norm())
     assert _pypy_convert_list(lst) == [p1, p2, p3, p4]
 
