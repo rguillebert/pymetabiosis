@@ -230,3 +230,15 @@ def test_callbacks_on_wrappers():
     lst.sort(key=lambda x: x.norm())
     assert _pypy_convert_list(lst) == [p1, p2, p3, p4]
 
+    # method callbacks
+    class Norm(object):
+        def __init__(self, n):
+            self.n = n
+        def norm(self, point):
+            return math.pow(point.norm()**2, 1.0 / self.n)
+    norm = Norm(2)
+    lst.reverse()
+    lst.sort(key=norm.norm)
+    assert _pypy_convert_list(lst) == [p1, p2, p3, p4]
+
+
