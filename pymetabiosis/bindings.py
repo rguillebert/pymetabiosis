@@ -6,12 +6,13 @@ ffi = FFI()
 ffi.cdef("""
          typedef ... PyTypeObject;
 
+         typedef size_t Py_ssize_t;
+
          typedef struct {
              PyTypeObject* ob_type;
+             Py_ssize_t ob_refcnt;
              ...;
          } PyObject;
-
-         typedef size_t Py_ssize_t;
 
          void Py_Initialize();
          void Py_Finalize();
