@@ -72,40 +72,34 @@ def convert_type(obj):
     except KeyError:
         raise NoConvertError
 
-def convert_function(obj):
 
-    @ffi.callback("PyObject*(PyObject*, PyObject*, PyObject*)")
-    def callback(py_self, py_args, py_kwargs):
-       #import pdb; pdb.set_trace()
-        if py_args == ffi.NULL:
-            args = ()
-        else:
-            args = pypy_convert(py_args)
-        if py_kwargs == ffi.NULL:
-            kwargs = {}
-        else:
-            kwargs = pypy_convert(py_kwargs)
+@ffi.callback("PyObject*(PyObject*, PyObject*, PyObject*)")
+def callback(py_self, py_args, py_kwargs):
+    args = () if py_args == ffi.NULL else pypy_convert(py_args)
+    kwargs = {} if py_kwargs == ffi.NULL else pypy_convert(py_kwargs)
+    fn = pypy_convert(py_self)
+    try:
+        result = fn(*args, **kwargs)
+    except Exception:
+        raise
+        #import pdb; pdb.set_trace()
+        pass # TODO - raise CPython exception
+    else:
         try:
-            result = obj(*args, **kwargs)
-        except Exception:
+            return convert(result)
+        except Exception as e:
             raise
-           #import pdb; pdb.set_trace()
-            pass # TODO - raise CPython exception
-        else:
-            try:
-                return convert(result)
-            except Exception as e:
-                raise
-               #import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
 
-    py_method = ffi.new("PyMethodDef*", dict(
-        ml_name=ffi.new("char[]", obj.__name__ or "pypy_callback"),
-        ml_meth=callback,
-        ml_flags=lib.METH_VARARGS | lib.METH_KEYWORDS,
-        ml_doc=ffi.new("char[]", obj.__doc__ or "")
-        ))
+py_method = ffi.new("PyMethodDef*", dict(
+    ml_name=ffi.new("char[]", "pypy_callback"),
+    ml_meth=callback,
+    ml_flags=lib.METH_VARARGS | lib.METH_KEYWORDS,
+    ml_doc=ffi.new("char[]", "")
+    ))
 
-    return lib.PyCFunction_New(py_method, ffi.NULL)
+def convert_function(obj):
+    return lib.PyCFunction_New(py_method, convert_unknown(obj))
 
 
 class MetabiosisWrapper(object):
