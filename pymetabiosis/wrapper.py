@@ -1,5 +1,6 @@
 import operator
 import types
+from __pypy__ import identity_dict
 import pymetabiosis.module
 from pymetabiosis.bindings import lib, ffi
 
@@ -316,7 +317,7 @@ class ApplevelWrapped(object):
 return ApplevelWrapped
 ''', noconvert=True)
 
-_applevel_by_obj = {}
+_applevel_by_obj = identity_dict()
 _obj_by_applevel = {}
 
 def convert_unknown(obj):

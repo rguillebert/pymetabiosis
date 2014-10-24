@@ -198,20 +198,26 @@ class Point(object):
     def norm(self):
         return math.sqrt(self.x ** 2 + self.y ** 2)
 
+class DictSubclass(dict):
+    _pymetabiosis_wrap = True
+
 def test_opaque_objects():
     builtin = import_module("__builtin__")
     builtin_noconvert = import_module("__builtin__", noconvert=True)
     p1, p2 = Point(1.0, 2.0), Point(3.0, -1.0)
+    d = DictSubclass()
 
-    lst = builtin.list([p1, p2])
-    assert lst == [p1, p2]
+    lst = builtin.list([p1, p2, d])
+    assert lst == [p1, p2, d]
 
-    lst_cpy = builtin_noconvert.list([p1, p2])
+    lst_cpy = builtin_noconvert.list([p1, p2, d])
     assert pypy_convert(lst_cpy[0].obj) == p1
     assert pypy_convert(lst_cpy[1].obj) == p2
+    assert pypy_convert(lst_cpy[2].obj) == d
     lst_cpy.reverse()
-    assert pypy_convert(lst_cpy[1].obj) == p1
-    assert pypy_convert(lst_cpy[0].obj) == p2
+    assert pypy_convert(lst_cpy[0].obj) == d
+    assert pypy_convert(lst_cpy[1].obj) == p2
+    assert pypy_convert(lst_cpy[2].obj) == p1
 
 def test_callbacks_simple():
     builtin = import_module("__builtin__", noconvert=True)
@@ -221,14 +227,14 @@ def test_callbacks_simple():
 
 def test_callbacks_on_wrappers():
     builtin = import_module("__builtin__", noconvert=True)
-    p1, p2, p3, p4 = [
+    p1, p2, p3, p4 = points = [
         Point(0, 0),
         Point(0, 1),
         Point(1, 2),
         Point(3, 4)]
     lst = builtin.list([p3, p2, p1, p4])
     lst.sort(key=lambda x: x.norm())
-    assert _pypy_convert_list(lst) == [p1, p2, p3, p4]
+    assert _pypy_convert_list(lst) == points
 
     # method callbacks
     class Norm(object):
@@ -239,6 +245,11 @@ def test_callbacks_on_wrappers():
     norm = Norm(2)
     lst.reverse()
     lst.sort(key=norm.norm)
-    assert _pypy_convert_list(lst) == [p1, p2, p3, p4]
+    assert _pypy_convert_list(lst) == points
+
+    # dict.get as a callback
+    d = dict((p, p.norm()) for p in points)
+    lst.reverse()
+    lst.sort(key=d.get)
 
 
