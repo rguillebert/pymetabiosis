@@ -257,6 +257,7 @@ pypy_to_cpy_converters = {
     types.NoneType: convert_None,
     type : convert_type,
     types.FunctionType: convert_function,
+    types.MethodType: convert_function,
 }
 pypy_to_cpy_types = {}
 cpy_to_pypy_converters = {}
