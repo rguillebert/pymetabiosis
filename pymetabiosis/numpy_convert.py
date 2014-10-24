@@ -6,9 +6,11 @@ def register_cpy_numpy_to_pypy_builtin_converters():
     ''' Converts numpy types to builtin python types on PyPy side
     '''
     numpy = import_module("numpy")
-    builtin = import_module("__builtin__")
-    call_direct = lambda f: \
-            lambda x: f._call((x,), args_kwargs_converted=True)
+    builtin = import_module("__builtin__", noconvert=True)
+    def call_direct(f):
+        f.noconvert = False
+        return lambda x: f._call((x,), args_kwargs_converted=True)
+
     cpy_to_pypy_converters.update({
         numpy.bool_.obj: call_direct(builtin.bool),
         numpy.int8.obj: call_direct(builtin.int),

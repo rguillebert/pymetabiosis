@@ -98,7 +98,7 @@ class MetabiosisWrapper(object):
         py_attr = ffi.gc(
                 lib.PyObject_GetAttrString(self.obj, c_name),
                 lib.Py_DECREF)
-        return MetabiosisWrapper(py_attr, self.noconvert)
+        return self._maybe_pypy_convert(py_attr)
 
     def __getitem__(self, key):
         py_res = ffi.gc(
@@ -237,7 +237,7 @@ def init_cpy_to_pypy_converters():
     global cpy_to_pypy_converters
 
     import __builtin__
-    builtin = pymetabiosis.module.import_module("__builtin__")
+    builtin = pymetabiosis.module.import_module("__builtin__", noconvert=True)
     types = pymetabiosis.module.import_module("types")
 
     cpy_to_pypy_converters = {
