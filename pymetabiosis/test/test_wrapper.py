@@ -97,6 +97,12 @@ def test_getitem_setitem_delitem():
     with pytest.raises(KeyError):
         del d[2]
 
+def test_getattr_convert():
+    builtin = import_module("__builtin__", noconvert=True)
+    s = builtin.slice(10, 11)
+    s.noconvert = False
+    assert s.start == 10
+
 def test_str_repr_dir():
     builtin = import_module("__builtin__", noconvert=True)
 
