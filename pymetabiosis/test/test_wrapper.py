@@ -1,4 +1,5 @@
 # encoding: utf-8
+import math
 import pytest
 from pymetabiosis.module import import_module
 from pymetabiosis.wrapper import MetabiosisWrapper, pypy_convert, applevel
@@ -188,14 +189,16 @@ return f
 ''', noconvert=False)
     assert fn() == 3
 
+class Point(object):
+    _pymetabiosis_wrap = True
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def norm(self):
+        return math.sqrt(self.x ** 2 + self.y ** 2)
+
 def test_opaque_objects():
-
-    class Point(object):
-        _pymetabiosis_wrap = True
-        def __init__(self, x, y):
-            self.x = x
-            self.y = y
-
     builtin = import_module("__builtin__")
     builtin_noconvert = import_module("__builtin__", noconvert=True)
     p1, p2 = Point(1.0, 2.0), Point(3.0, -1.0)
@@ -209,3 +212,21 @@ def test_opaque_objects():
     lst_cpy.reverse()
     assert pypy_convert(lst_cpy[1].obj) == p1
     assert pypy_convert(lst_cpy[0].obj) == p2
+
+def test_callbacks_simple():
+    builtin = import_module("__builtin__", noconvert=True)
+    lst = builtin.list([1, 2, 3, 4, 5, 6])
+    lst.sort(key=lambda x: x % 3)
+    assert _pypy_convert_list(lst) == [3, 6, 1, 4, 2, 5]
+
+def test_callbacks_on_wrappers():
+    builtin = import_module("__builtin__", noconvert=True)
+    p1, p2, p3, p4 = [
+        Point(0, 0),
+        Point(0, 1),
+        Point(1, 2),
+        Point(3, 4)]
+    lst = builtin.list([p3, p3, p1, p4])
+    lst.sort(key=lambda x: x.norm())
+    assert _pypy_convert_list(lst) == [p1, p2, p3, p4]
+
