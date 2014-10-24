@@ -72,6 +72,41 @@ def convert_type(obj):
     except KeyError:
         raise NoConvertError
 
+def convert_function(obj):
+
+    @ffi.callback("PyObject*(PyObject*, PyObject*, PyObject*)")
+    def callback(py_self, py_args, py_kwargs):
+       #import pdb; pdb.set_trace()
+        if py_args == ffi.NULL:
+            args = ()
+        else:
+            args = pypy_convert(py_args)
+        if py_kwargs == ffi.NULL:
+            kwargs = {}
+        else:
+            kwargs = pypy_convert(py_kwargs)
+        try:
+            result = obj(*args, **kwargs)
+        except Exception:
+            raise
+           #import pdb; pdb.set_trace()
+            pass # TODO - raise CPython exception
+        else:
+            try:
+                return convert(result)
+            except Exception as e:
+                raise
+               #import pdb; pdb.set_trace()
+
+    py_method = ffi.new("PyMethodDef*", dict(
+        ml_name=ffi.new("char[]", obj.__name__ or "pypy_callback"),
+        ml_meth=callback,
+        ml_flags=lib.METH_VARARGS | lib.METH_KEYWORDS,
+        ml_doc=ffi.new("char[]", obj.__doc__ or "")
+        ))
+
+    return lib.PyCFunction_New(py_method, ffi.NULL)
+
 
 class MetabiosisWrapper(object):
     def __init__(self, obj, noconvert=False):
@@ -227,6 +262,7 @@ pypy_to_cpy_converters = {
     bool : convert_bool,
     types.NoneType: convert_None,
     type : convert_type,
+    types.FunctionType: convert_function,
 }
 pypy_to_cpy_types = {}
 cpy_to_pypy_converters = {}
