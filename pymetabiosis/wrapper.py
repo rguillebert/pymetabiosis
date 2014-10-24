@@ -23,8 +23,9 @@ def convert_unicode(u):
             lib.PyUnicode_FromString(ffi.new("char[]", u.encode('utf-8'))),
             lib.Py_DECREF)
 
-def convert_tuple(obj):
-    values = [convert(value) for value in obj]
+def convert_tuple(values, convert_items=True):
+    if convert_items:
+        values = [convert(value) for value in values]
 
     return ffi.gc(lib.PyTuple_Pack(len(values), *values), lib.Py_DECREF)
 
@@ -43,11 +44,13 @@ def convert_None(obj):
 def convert_float(obj):
     return ffi.gc(lib.PyFloat_FromDouble(obj), lib.Py_DECREF)
 
-def convert_dict(obj):
+def convert_dict(obj, convert_values=True):
     dict = ffi.gc(lib.PyDict_New(), lib.Py_DECREF)
 
     for key, value in obj.iteritems():
-        lib.PyDict_SetItem(dict, convert(key), convert(value))
+        if convert_values:
+            value = convert(value)
+        lib.PyDict_SetItem(dict, convert(key), value)
 
     return dict
 
@@ -127,11 +130,15 @@ class MetabiosisWrapper(object):
         return self._getattr('__invert__')()
 
     def __call__(self, *args, **kwargs):
-        arguments_tuple = convert_tuple(args)
+        return self._call(args, kwargs)
+
+    def _call(self, args, kwargs=None, args_kwargs_converted=False):
+        convert = not args_kwargs_converted
+        arguments_tuple = convert_tuple(args, convert_items=convert)
 
         keywordargs = ffi.NULL
         if kwargs:
-            keywordargs = convert_dict(kwargs)
+            keywordargs = convert_dict(kwargs, convert_values=convert)
 
         return_value = ffi.gc(
                 lib.PyObject_Call(self.obj, arguments_tuple, keywordargs),
