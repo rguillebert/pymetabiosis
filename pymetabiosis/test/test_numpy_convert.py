@@ -1,8 +1,8 @@
 from pymetabiosis.module import import_module
 from pymetabiosis.numpy_convert import \
-        register_cpy_numpy_to_pypy_builin_converters
+        register_cpy_numpy_to_pypy_builtin_converters
 
-register_cpy_numpy_to_pypy_builin_converters()
+register_cpy_numpy_to_pypy_builtin_converters()
 
 def test_scalar_converter():
     numpy = import_module("numpy")

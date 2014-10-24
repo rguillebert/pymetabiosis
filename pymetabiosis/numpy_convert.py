@@ -2,7 +2,7 @@ from pymetabiosis.module import import_module
 from pymetabiosis.wrapper import cpy_to_pypy_converters
 
 
-def register_cpy_numpy_to_pypy_builin_converters():
+def register_cpy_numpy_to_pypy_builtin_converters():
     ''' Converts numpy types to builtin python types on PyPy side
     '''
     numpy = import_module("numpy")
