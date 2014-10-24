@@ -5,14 +5,15 @@ from pymetabiosis.bindings import lib, ffi
 
 
 def convert(obj):
-    try:
-        converter = pypy_to_cpy_converters[type(obj)]
-    except KeyError:
-        if getattr(obj, '_pymetabiosis_wrap', None):
-            return convert_unknown(obj)
-        raise
-    else:
-        return converter(obj)
+    _type = type(obj)
+    if _type in pypy_to_cpy_converters:
+        try:
+            return pypy_to_cpy_converters[_type](obj)
+        except NoConvertError:
+            pass
+    if getattr(obj, '_pymetabiosis_wrap', None):
+        return convert_unknown(obj)
+    raise NoConvertError(type(obj))
 
 def convert_string(s):
     return ffi.gc(lib.PyString_FromString(ffi.new("char[]", s)), lib.Py_DECREF)
@@ -56,6 +57,18 @@ def convert_list(obj):
         lib.PyList_SetItem(lst, i, convert(x))
     return lst
 
+def convert_slice(obj):
+    return ffi.gc(
+            lib.PySlice_New(
+                convert(obj.start), convert(obj.stop), convert(obj.step)),
+            lib.Py_DECREF)
+
+def convert_type(obj):
+    try:
+        return pypy_to_cpy_types[obj]
+    except KeyError:
+        raise NoConvertError
+
 
 class MetabiosisWrapper(object):
     def __init__(self, obj, noconvert=False):
@@ -75,6 +88,9 @@ class MetabiosisWrapper(object):
         return pypy_convert(py_lst)
 
     def __getattr__(self, name):
+        return self._getattr(name)
+
+    def _getattr(self, name):
         c_name = ffi.new("char[]", name)
         py_attr = ffi.gc(
                 lib.PyObject_GetAttrString(self.obj, c_name),
@@ -96,6 +112,9 @@ class MetabiosisWrapper(object):
     def __len__(self):
         return lib.PyObject_Size(self.obj)
 
+    def __nonzero__(self):
+        return lib.PyObject_IsTrue(self.obj) == 1
+
     def __iter__(self):
         py_iter = ffi.gc(lib.PyObject_GetIter(self.obj), lib.Py_DECREF)
         while True:
@@ -103,6 +122,9 @@ class MetabiosisWrapper(object):
             if py_next is None:
                 break
             yield self._maybe_pypy_convert(py_next)
+
+    def __invert__(self):
+        return self._getattr('__invert__')()
 
     def __call__(self, *args, **kwargs):
         arguments_tuple = convert_tuple(args)
@@ -134,8 +156,11 @@ class MetabiosisWrapper(object):
 def pypy_convert(obj):
     type = MetabiosisWrapper(obj).get_type().obj
     if type in cpy_to_pypy_converters:
-        return cpy_to_pypy_converters[type](obj)
-    elif type == ApplevelWrapped.obj:
+        try:
+            return cpy_to_pypy_converters[type](obj)
+        except NoConvertError:
+            pass
+    if type == ApplevelWrapped.obj:
         return _obj_by_applevel[obj]
     else:
         return MetabiosisWrapper(obj)
@@ -172,6 +197,15 @@ def pypy_convert_list(obj):
     return [pypy_convert(lib.PyList_GetItem(obj, i))
             for i in xrange(lib.PyList_Size(obj))]
 
+def pypy_convert_type(obj):
+    try:
+        return cpy_to_pypy_types[obj]
+    except KeyError:
+        raise NoConvertError
+
+class NoConvertError(Exception):
+    pass
+
 
 pypy_to_cpy_converters = {
     MetabiosisWrapper : operator.attrgetter("obj"),
@@ -182,15 +216,20 @@ pypy_to_cpy_converters = {
     tuple : convert_tuple,
     dict : convert_dict,
     list : convert_list,
+    slice : convert_slice,
     bool : convert_bool,
     types.NoneType: convert_None,
+    type : convert_type,
 }
+pypy_to_cpy_types = {}
 cpy_to_pypy_converters = {}
+cpy_to_pypy_types = {}
 
 
 def init_cpy_to_pypy_converters():
     global cpy_to_pypy_converters
 
+    import __builtin__
     builtin = pymetabiosis.module.import_module("__builtin__")
     types = pymetabiosis.module.import_module("types")
 
@@ -203,8 +242,16 @@ def init_cpy_to_pypy_converters():
             builtin.dict.obj : pypy_convert_dict,
             builtin.list.obj : pypy_convert_list,
             builtin.bool.obj : pypy_convert_bool,
+            builtin.type.obj : pypy_convert_type,
             types.NoneType.obj : pypy_convert_None,
             }
+
+    converted_types = ['int', 'float', 'bool', 'str', 'unicode']
+    for _type in converted_types:
+        cpy_type = getattr(builtin, _type).obj
+        pypy_type = getattr(__builtin__, _type)
+        cpy_to_pypy_types[cpy_type] = pypy_type
+        pypy_to_cpy_types[pypy_type] = cpy_type
 
 
 def applevel(code, noconvert=False):

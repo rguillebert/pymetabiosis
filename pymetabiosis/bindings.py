@@ -6,12 +6,13 @@ ffi = FFI()
 ffi.cdef("""
          typedef ... PyTypeObject;
 
+         typedef size_t Py_ssize_t;
+
          typedef struct {
              PyTypeObject* ob_type;
+             Py_ssize_t ob_refcnt;
              ...;
          } PyObject;
-
-         typedef size_t Py_ssize_t;
 
          void Py_Initialize();
          void Py_Finalize();
@@ -76,6 +77,7 @@ ffi.cdef("""
          int PyObject_DelItem(PyObject *o, PyObject *key);
          Py_ssize_t PyObject_Size(PyObject *o);
          PyObject* PyObject_GetIter(PyObject *o);
+         int PyObject_IsTrue(PyObject *o);
 
          // Iterator: https://docs.python.org/2/c-api/iter.html
          PyObject* PyIter_Next(PyObject *o);
@@ -105,6 +107,9 @@ ffi.cdef("""
          int PyDict_SetItemString(PyObject *p, const char *key, PyObject *val);
          PyObject* PyDict_Items(PyObject *p);
 
+         // Slice: https://docs.python.org/2/c-api/slice.html
+         PyObject* PySlice_New(PyObject *start, PyObject *stop, PyObject *step);
+
          // Integer: http://docs.python.org/2/c-api/int.html
          PyObject* PyInt_FromLong(long ival);
          long PyLong_AsLong(PyObject *obj);
@@ -123,6 +128,9 @@ ffi.cdef("""
 
 lib = ffi.verify("""
                  #include<Python.h>
+                 #ifdef PyTuple_GetItem
+                 #error "Picking Python.h from pypy"
+                 #endif
                  """, libraries=["python2.7"], flags=ffi.RTLD_GLOBAL)
 
 lib.Py_Initialize()
@@ -208,6 +216,7 @@ for args in [
         ('PyObject_DelItem', -1),
         ('PyObject_Size', int(ffi.cast('Py_ssize_t', -1))),
         'PyObject_GetIter',
+        ('PyObject_IsTrue', -1),
         'PyIter_Next',
         'PyString_AsString',
         'PyString_FromString',
