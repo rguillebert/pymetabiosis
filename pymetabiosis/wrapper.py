@@ -317,14 +317,21 @@ class ApplevelWrapped(object):
 return ApplevelWrapped
 ''', noconvert=True)
 
-_applevel_by_obj = identity_dict()
+_applevel_by_obj = {}
+_applevel_by_unhashable_obj = identity_dict()
 _obj_by_applevel = {}
 
 def convert_unknown(obj):
-    aw = _applevel_by_obj.get(obj)
+    try:
+        aw = _applevel_by_obj.get(obj)
+    except TypeError:
+        aw = _applevel_by_unhashable_obj.get(obj)
     if aw is None:
         aw = ApplevelWrapped().obj
-        _applevel_by_obj[obj] = aw
+        try:
+            _applevel_by_obj[obj] = aw
+        except TypeError:
+            _applevel_by_unhashable_obj[obj] = aw
         _obj_by_applevel[aw] = obj
     lib.Py_INCREF(aw)
     return aw
