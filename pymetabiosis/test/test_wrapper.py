@@ -2,7 +2,8 @@
 import math
 import pytest
 from pymetabiosis.module import import_module
-from pymetabiosis.wrapper import MetabiosisWrapper, pypy_convert, applevel
+from pymetabiosis.wrapper import MetabiosisWrapper, pypy_convert, applevel, \
+        NoConvertError
 
 def test_getattr_on_module():
     sqlite = import_module("sqlite3")
@@ -253,3 +254,14 @@ def test_callbacks_on_wrappers():
     lst.sort(key=d.get)
 
 
+def test_callbacks_exceptions():
+    builtin = import_module("__builtin__")
+    d = {1: 2}
+    fn = lambda x: d[x]
+    assert builtin.apply(fn, (1,)) == 2
+    # exception in callback
+    with pytest.raises(KeyError):
+        builtin.apply(fn, (2,))
+    # exception in converting result
+    with pytest.raises(NoConvertError): # FIXME - can we?
+        builtin.apply(lambda : object())
