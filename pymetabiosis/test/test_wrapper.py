@@ -263,5 +263,9 @@ def test_callbacks_exceptions():
     with pytest.raises(KeyError):
         builtin.apply(fn, (2,))
     # exception in converting result
-    with pytest.raises(NoConvertError): # FIXME - can we?
+    try:
         builtin.apply(lambda : object())
+    except SystemError:
+        assert False
+    except Exception:
+        pass

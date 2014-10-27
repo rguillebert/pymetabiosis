@@ -37,6 +37,7 @@ ffi.cdef("""
          void PyErr_Print();
          void PyErr_Clear();
          int PyErr_ExceptionMatches(PyObject *exc);
+         void PyErr_SetString(PyObject *type, const char *message);
          PyObject* const PyExc_BaseException;
          PyObject* const PyExc_Exception;
          PyObject* const PyExc_StandardError;

@@ -2,7 +2,7 @@ import operator
 import types
 from __pypy__ import identity_dict
 import pymetabiosis.module
-from pymetabiosis.bindings import lib, ffi
+from pymetabiosis.bindings import lib, ffi, exceptions
 
 
 def convert(obj):
@@ -81,16 +81,18 @@ def callback(py_self, py_args, py_kwargs):
     fn = pypy_convert(py_self)
     try:
         result = fn(*args, **kwargs)
-    except Exception:
-        raise
-        #import pdb; pdb.set_trace()
-        pass # TODO - raise CPython exception
-    else:
-        try:
-            return convert(result)
-        except Exception as e:
-            raise
-            #import pdb; pdb.set_trace()
+        return convert(result)
+    except Exception as e:
+        default_message = "Exception in pymetabiosis callback"
+        for py_exc_type, exc_type in reversed(exceptions):
+            if isinstance(e, exc_type):
+                lib.PyErr_SetString(
+                        py_exc_type, ffi.new("char[]", default_message))
+                return ffi.NULL
+        lib.PyErr_SetString(lib.PyExc_Exception,
+                ffi.new("char[]", default_message))
+        return ffi.NULL
+
 
 py_method = ffi.new("PyMethodDef*", dict(
     ml_name=ffi.new("char[]", "pypy_callback"),
