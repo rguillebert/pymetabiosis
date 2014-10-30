@@ -37,6 +37,7 @@ ffi.cdef("""
          void PyErr_Print();
          void PyErr_Clear();
          int PyErr_ExceptionMatches(PyObject *exc);
+         void PyErr_SetString(PyObject *type, const char *message);
          PyObject* const PyExc_BaseException;
          PyObject* const PyExc_Exception;
          PyObject* const PyExc_StandardError;
@@ -78,6 +79,21 @@ ffi.cdef("""
          Py_ssize_t PyObject_Size(PyObject *o);
          PyObject* PyObject_GetIter(PyObject *o);
          int PyObject_IsTrue(PyObject *o);
+
+         // Creating CPython function that call cffi callbacks
+         // https://docs.python.org/2/c-api/structures.html#c.PyCFunction
+         // http://bugs.python.org/file32578/16776.txt
+         int const METH_VARARGS;
+         int const METH_KEYWORDS;
+         typedef ... PyCFunction;
+         typedef struct {
+            char* ml_name; // name of the method
+            void* ml_meth; // pointer to the C implementation
+            int ml_flags;   // flag bits indicating how the call should be constructed
+            char* ml_doc;   // points to the contents of the docstring
+            ...;
+         } PyMethodDef;
+         PyObject* PyCFunction_New(PyMethodDef *ml, PyObject *self);
 
          // Iterator: https://docs.python.org/2/c-api/iter.html
          PyObject* PyIter_Next(PyObject *o);

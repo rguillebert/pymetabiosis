@@ -1,7 +1,8 @@
 import operator
 import types
+from __pypy__ import identity_dict
 import pymetabiosis.module
-from pymetabiosis.bindings import lib, ffi
+from pymetabiosis.bindings import lib, ffi, exceptions
 
 
 def convert(obj):
@@ -71,6 +72,37 @@ def convert_type(obj):
         return pypy_to_cpy_types[obj]
     except KeyError:
         raise NoConvertError
+
+
+@ffi.callback("PyObject*(PyObject*, PyObject*, PyObject*)")
+def callback(py_self, py_args, py_kwargs):
+    args = () if py_args == ffi.NULL else pypy_convert(py_args)
+    kwargs = {} if py_kwargs == ffi.NULL else pypy_convert(py_kwargs)
+    fn = pypy_convert(py_self)
+    try:
+        result = fn(*args, **kwargs)
+        return convert(result)
+    except Exception as e:
+        default_message = "Exception in pymetabiosis callback"
+        for py_exc_type, exc_type in reversed(exceptions):
+            if isinstance(e, exc_type):
+                lib.PyErr_SetString(
+                        py_exc_type, ffi.new("char[]", default_message))
+                return ffi.NULL
+        lib.PyErr_SetString(lib.PyExc_Exception,
+                ffi.new("char[]", default_message))
+        return ffi.NULL
+
+
+py_method = ffi.new("PyMethodDef*", dict(
+    ml_name=ffi.new("char[]", "pypy_callback"),
+    ml_meth=callback,
+    ml_flags=lib.METH_VARARGS | lib.METH_KEYWORDS,
+    ml_doc=ffi.new("char[]", "")
+    ))
+
+def convert_function(obj):
+    return lib.PyCFunction_New(py_method, convert_unknown(obj))
 
 
 class MetabiosisWrapper(object):
@@ -227,6 +259,8 @@ pypy_to_cpy_converters = {
     bool : convert_bool,
     types.NoneType: convert_None,
     type : convert_type,
+    types.FunctionType: convert_function,
+    types.MethodType: convert_function,
 }
 pypy_to_cpy_types = {}
 cpy_to_pypy_converters = {}
@@ -286,13 +320,20 @@ return ApplevelWrapped
 ''', noconvert=True)
 
 _applevel_by_obj = {}
+_applevel_by_unhashable_obj = identity_dict()
 _obj_by_applevel = {}
 
 def convert_unknown(obj):
-    aw = _applevel_by_obj.get(obj)
+    try:
+        aw = _applevel_by_obj.get(obj)
+    except TypeError:
+        aw = _applevel_by_unhashable_obj.get(obj)
     if aw is None:
         aw = ApplevelWrapped().obj
-        _applevel_by_obj[obj] = aw
+        try:
+            _applevel_by_obj[obj] = aw
+        except TypeError:
+            _applevel_by_unhashable_obj[obj] = aw
         _obj_by_applevel[aw] = obj
     lib.Py_INCREF(aw)
     return aw
