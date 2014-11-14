@@ -220,6 +220,18 @@ def test_opaque_objects():
     assert pypy_convert(lst_cpy[1].obj) == p2
     assert pypy_convert(lst_cpy[2].obj) == p1
 
+def test_isinstance():
+    builtin = import_module("__builtin__", noconvert=True)
+    assert not isinstance(builtin.int(10), int)
+    assert isinstance(builtin.int(10), builtin.int)
+    assert isinstance(builtin.int(10), MetabiosisWrapper)
+
+def test_issubclass():
+    builtin = import_module("__builtin__", noconvert=True)
+    types = import_module("types", noconvert=True)
+    assert issubclass(builtin.int, builtin.int)
+    assert issubclass(builtin.int, types.IntType)
+
 def test_callbacks_simple():
     builtin = import_module("__builtin__", noconvert=True)
     lst = builtin.list([1, 2, 3, 4, 5, 6])

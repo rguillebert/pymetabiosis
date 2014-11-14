@@ -161,6 +161,18 @@ class MetabiosisWrapper(object):
     def __invert__(self):
         return self._getattr('__invert__')()
 
+    def __instancecheck__(self, instance):
+        if type(instance) is MetabiosisWrapper:
+            return self._getattr('__instancecheck__')(instance)
+        else:
+            return super(MetabiosisWrapper, self).__instancecheck__(instance)
+
+    def __subclasscheck__(self, subclass):
+        if type(subclass) is MetabiosisWrapper:
+            return self._getattr('__subclasscheck__')(subclass)
+        else:
+            return super(MetabiosisWrapper, self).__subclasscheck__(subclass)
+
     def __call__(self, *args, **kwargs):
         return self._call(args, kwargs)
 
