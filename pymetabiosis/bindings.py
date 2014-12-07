@@ -165,7 +165,8 @@ lib = ffi.verify("""
                  """,
                  libraries=["python2.7"],
                  extra_compile_args=_extra_compile_args,
-                 include_dirs=_include_dirs)
+                 include_dirs=_include_dirs,
+                 flags=ffi.RTLD_GLOBAL)
 
 lib.Py_Initialize()
 atexit.register(lib.Py_Finalize)
