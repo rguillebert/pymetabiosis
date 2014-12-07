@@ -1,5 +1,8 @@
 import atexit
+from subprocess import check_output
+
 from cffi import FFI
+
 
 ffi = FFI()
 
@@ -142,12 +145,27 @@ ffi.cdef("""
 
          """)
 
+
+# FIXME - unix-only
+_include_dirs = []
+_extra_compile_args = []
+_include_prefix = '-I'
+for arg in check_output(['python-config', '--cflags']).split():
+    if arg.startswith(_include_prefix):
+        _include_dirs.append(arg[2:])
+    else:
+        _extra_compile_args.append(arg)
+
+
 lib = ffi.verify("""
                  #include<Python.h>
                  #ifdef PyTuple_GetItem
                  #error "Picking Python.h from pypy"
                  #endif
-                 """, libraries=["python2.7"], flags=ffi.RTLD_GLOBAL)
+                 """,
+                 libraries=["python2.7"],
+                 extra_compile_args=_extra_compile_args,
+                 include_dirs=_include_dirs)
 
 lib.Py_Initialize()
 atexit.register(lib.Py_Finalize)
