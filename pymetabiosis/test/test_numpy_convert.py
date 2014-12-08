@@ -16,7 +16,7 @@ def test_scalar_converter():
 
     assert numpy.int8(10) == 10
     assert numpy.int16(-10) == -10
-    assert numpy.int32(2**31-1) == 2**31-1
+    assert numpy.int32(int(2**31-1)).__int__() == int(2**31-1)
     assert numpy.int64(42) == 42
 
     assert numpy.float16(10.0) == 10.0
