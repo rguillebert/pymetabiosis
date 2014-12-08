@@ -1,5 +1,49 @@
 import atexit
 from cffi import FFI
+import os
+from subprocess import check_output
+import sys
+
+
+def _get_python():
+    """Find a suitable Python to embed.
+    """
+    python_embed_prefix = os.environ.get('PYTHON_EMBED', '')
+    if not python_embed_prefix:
+        python = check_output(
+            ["python", "-c", "import sys;print sys.executable"]
+        ).strip()
+    else:
+        if sys.platform == 'win32':
+            python = os.path.join(python_embed_prefix, 'python.exe')
+        else:
+            python = os.path.join(python_embed_prefix, 'bin', 'python')
+    is_pypy = check_output(
+        [python, "-c", "import sys;print hasattr(sys, 'pypy_version_info')"]
+    ).strip()
+    if is_pypy.lower() == "true":
+        msg = "%s is a PyPy interpreter and not Python.  Please set\n"\
+              "your PYTHON_EMBED env var to point to your Python installation."
+        raise RuntimeError(msg)
+    return python
+
+PYTHON = _get_python()
+
+def _get_include_dirs():
+    return [check_output(
+        [PYTHON, "-c",
+         "from distutils import sysconfig;"
+         "print sysconfig.get_python_inc()"]
+    ).strip()]
+
+
+def _get_library_dirs():
+    return [check_output(
+        [PYTHON, "-c",
+         "from distutils import sysconfig;"
+         "print sysconfig.get_config_var('LIBDIR')"]
+    )]
+
 
 ffi = FFI()
 
@@ -17,6 +61,7 @@ ffi.cdef("""
          void Py_Initialize();
          void Py_Finalize();
 
+         void Py_SetProgramName(char *name);
          int PyRun_SimpleString(const char *command);
 
          void Py_INCREF(PyObject *o);
@@ -147,8 +192,14 @@ lib = ffi.verify("""
                  #ifdef PyTuple_GetItem
                  #error "Picking Python.h from pypy"
                  #endif
-                 """, libraries=["python2.7"], flags=ffi.RTLD_GLOBAL)
+                 """,
+                 include_dirs=_get_include_dirs(),
+                 libraries=["python2.7"],
+                 library_dirs=_get_library_dirs(),
+                 flags=ffi.RTLD_GLOBAL)
 
+prog_name = ffi.new("char[]", PYTHON)
+lib.Py_SetProgramName(prog_name)
 lib.Py_Initialize()
 atexit.register(lib.Py_Finalize)
 
