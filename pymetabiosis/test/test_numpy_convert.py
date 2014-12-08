@@ -1,3 +1,4 @@
+import pytest
 from pymetabiosis.module import import_module
 from pymetabiosis.numpy_convert import \
         register_cpy_numpy_to_pypy_builtin_converters
@@ -5,7 +6,10 @@ from pymetabiosis.numpy_convert import \
 register_cpy_numpy_to_pypy_builtin_converters()
 
 def test_scalar_converter():
-    numpy = import_module("numpy")
+    try:
+        numpy = import_module("numpy")
+    except ImportError:
+        pytest.skip("numpy isn't installed on the cpython side")
 
     assert numpy.bool_(True) is True
     assert numpy.bool_(False) is False
@@ -18,5 +22,6 @@ def test_scalar_converter():
     assert numpy.float16(10.0) == 10.0
     assert numpy.float32(-10) == -10.0
     assert numpy.float64(42.0) == 42.0
-    assert numpy.float128(-42.0) == -42.0
+    if hasattr(numpy, "float128"):
+        assert numpy.float128(-42.0) == -42.0
 
