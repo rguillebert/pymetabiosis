@@ -20,5 +20,7 @@ def register_cpy_numpy_to_pypy_builtin_converters():
         numpy.float16.obj: call_direct(builtin.float),
         numpy.float32.obj: call_direct(builtin.float),
         numpy.float64.obj: call_direct(builtin.float),
-        numpy.float128.obj: call_direct(builtin.float),
     })
+
+    if hasattr(numpy, "float128"):
+        cpy_to_pypy_converters.update({numpy.float128.obj: call_direct(builtin.float)})
