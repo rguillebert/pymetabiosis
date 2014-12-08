@@ -23,7 +23,8 @@ def _get_python():
     ).strip()
     if is_pypy.lower() == "true":
         msg = "%s is a PyPy interpreter and not Python.  Please set\n"\
-              "your PYTHON_EMBED env var to point to your Python installation."
+              "your PYTHON_EMBED env var to point to your Python "\
+              "installation."%python
         raise RuntimeError(msg)
     return python
 
