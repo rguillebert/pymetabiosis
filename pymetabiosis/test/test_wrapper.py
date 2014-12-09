@@ -1,9 +1,10 @@
 # encoding: utf-8
 import math
+import operator
+
 import pytest
 from pymetabiosis.module import import_module
-from pymetabiosis.wrapper import MetabiosisWrapper, pypy_convert, applevel, \
-        NoConvertError
+from pymetabiosis.wrapper import MetabiosisWrapper, convert, pypy_convert, applevel
 
 def test_getattr_on_module():
     sqlite = import_module("sqlite3")
@@ -102,7 +103,7 @@ def test_getitem_setitem_delitem():
 def test_getattr_convert():
     builtin = import_module("__builtin__", noconvert=True)
     s = builtin.slice(10, 11)
-    s.noconvert = False
+    s.__dict__['noconvert'] = False
     assert s.start == 10
 
 def test_str_repr_dir():
@@ -141,6 +142,7 @@ def test_type():
 def test_slice():
     builtin = import_module("__builtin__", noconvert=True)
     lst = builtin.list(list(xrange(10)))
+    assert _pypy_convert_list(lst) == list(xrange(10))
     assert _pypy_convert_list(lst[-1:]) == [9]
     assert _pypy_convert_list(lst[:2]) == [0, 1]
     assert _pypy_convert_list(lst[-9:3]) == [1, 2]
@@ -281,3 +283,26 @@ def test_callbacks_exceptions():
         assert False
     except Exception:
         pass
+
+
+@pytest.mark.parametrize('op,input', [
+    (operator.abs, -1),
+    (operator.invert, 2),
+    (operator.neg, 2),
+    # (operator.not_, 0),
+    (operator.pos, -2),
+    # (operator.truth, 0),
+])
+def test_unaryop(op, input):
+    cinput = convert(input)
+    wrapper = MetabiosisWrapper(cinput)
+    cresult = op(wrapper)
+    result = pypy_convert(cresult)
+    expected = op(input)
+    assert result == expected
+
+
+
+
+
+

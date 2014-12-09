@@ -107,30 +107,144 @@ def convert_function(obj):
 
 class MetabiosisWrapper(object):
     def __init__(self, obj, noconvert=False):
-        self.obj = obj
-        self.noconvert = noconvert
+        self.__dict__['obj'] = obj
+        self.__dict__['noconvert'] = noconvert
 
-    def __add__(self, b):
-        op = pymetabiosis.module.import_module("operator")
-        return op.add(self, b)
+    def __abs__(self):
+        return self._maybe_pypy_convert(cpy_operator.abs(self))
 
-    def __mul__(self, b):
-        op = pymetabiosis.module.import_module("operator")
-        return op.mul(self, b)
+    def __add__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.add(self, other))
 
-    def __int__(self):
-        return pypy_convert_int(self.obj)
+    def __and__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.and_(self, other))
+
+    def __contains__(self, item):
+        return self._maybe_pypy_convert(cpy_operator.contains(self, item))
+
+    def __delslice__(self, a, b):
+        return self._maybe_pypy_convert(cpy_operator.delslice(self, a, b))
+
+    def __div__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.div(self, other))
+
+    def __eq__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.eq(self, other))
+
+    def __floordiv__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.floordiv(self, other))
+
+    def __ge__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.ge(self, other))
+
+    def __getslice__(self, a, b):
+        return self._maybe_pypy_convert(cpy_operator.getslice(self, a, b))
+
+    def __gt__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.gt(self, other))
+
+    def __iadd__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.iadd(self, other))
+
+    def __iand__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.iand(self, other))
+
+    def __idiv__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.idiv(self, other))
+
+    def __ifloordiv__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.ifloordiv(self, other))
+
+    def __ilshift__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.ilshift(self, other))
+
+    def __imod__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.imod(self, other))
+
+    def __imul__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.imul(self, other))
+
+    def __index__(self, item):
+        return self._maybe_pypy_convert(cpy_operator.index(self, item))
+
+    def __invert__(self):
+        return self._maybe_pypy_convert(cpy_operator.invert(self))
+
+    def __ior__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.ior(self, other))
+
+    def __ipow__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.ipow(self, other))
+
+    def __irshift__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.irshift(self, other))
+
+    def __isub__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.isub(self, other))
+
+    def __itruediv__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.itruediv(self, other))
+
+    def __ixor__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.ixor(self, other))
+
+    def __le__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.le(self, other))
+
+    def __lshift__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.lshift(self, other))
+
+    def __lt__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.lt(self, other))
+
+    def __mod__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.mod(self, other))
+
+    def __mul__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.mul(self, other))
+
+    def __ne__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.ne(self, other))
+
+    def __neg__(self):
+        return self._maybe_pypy_convert(cpy_operator.neg(self))
+
+    def __or__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.or_(self, other))
+
+    def __pos__(self):
+        return self._maybe_pypy_convert(cpy_operator.pos(self))
+
+    def __pow__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.pow(self, other))
+
+    def __rshift__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.rshift(self, other))
+
+    def __setslice__(self, a, b, value):
+        return self._maybe_pypy_convert(cpy_operator.setslice(self, a, b, value))
+
+    def __sub__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.sub(self, other))
+
+    def __truediv__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.truediv(self, other))
+
+    def __xor__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.xor(self, other))
+
+
 
     def __repr__(self):
-        py_str = ffi.gc(lib.PyObject_Repr(self.obj), lib.Py_DECREF)
+        py_str = ffi.gc(lib.PyObject_Repr(self.__dict__['obj']), lib.Py_DECREF)
         return pypy_convert(py_str)
 
     def __str__(self):
-        py_str = ffi.gc(lib.PyObject_Str(self.obj), lib.Py_DECREF)
+        py_str = ffi.gc(lib.PyObject_Str(self.__dict__['obj']), lib.Py_DECREF)
         return pypy_convert(py_str)
 
     def __dir__(self):
-        py_lst = ffi.gc(lib.PyObject_Dir(self.obj), lib.Py_DECREF)
+        py_lst = ffi.gc(lib.PyObject_Dir(self.__dict__['obj']), lib.Py_DECREF)
         return pypy_convert(py_lst)
 
     def __getattr__(self, name):
@@ -139,38 +253,38 @@ class MetabiosisWrapper(object):
     def _getattr(self, name):
         c_name = ffi.new("char[]", name)
         py_attr = ffi.gc(
-                lib.PyObject_GetAttrString(self.obj, c_name),
+                lib.PyObject_GetAttrString(self.__dict__['obj'], c_name),
                 lib.Py_DECREF)
         return self._maybe_pypy_convert(py_attr)
 
+    def __setattr__(self, key, value):
+        lib.PyObject_SetAttr(self.__dict__['obj'], convert(key), convert(value))
+
     def __getitem__(self, key):
         py_res = ffi.gc(
-                lib.PyObject_GetItem(self.obj, convert(key)),
+                lib.PyObject_GetItem(self.__dict__['obj'], convert(key)),
                 lib.Py_DECREF)
         return self._maybe_pypy_convert(py_res)
 
     def __setitem__(self, key, value):
-        lib.PyObject_SetItem(self.obj, convert(key), convert(value))
+        lib.PyObject_SetItem(self.__dict__['obj'], convert(key), convert(value))
 
     def __delitem__(self, key):
-        lib.PyObject_DelItem(self.obj, convert(key))
+        lib.PyObject_DelItem(self.__dict__['obj'], convert(key))
 
     def __len__(self):
-        return lib.PyObject_Size(self.obj)
+        return lib.PyObject_Size(self.__dict__['obj'])
 
     def __nonzero__(self):
-        return lib.PyObject_IsTrue(self.obj) == 1
+        return lib.PyObject_IsTrue(self.__dict__['obj']) == 1
 
     def __iter__(self):
-        py_iter = ffi.gc(lib.PyObject_GetIter(self.obj), lib.Py_DECREF)
+        py_iter = ffi.gc(lib.PyObject_GetIter(self.__dict__['obj']), lib.Py_DECREF)
         while True:
             py_next = lib.PyIter_Next(py_iter)
             if py_next is None:
                 break
             yield self._maybe_pypy_convert(py_next)
-
-    def __invert__(self):
-        return self._getattr('__invert__')()
 
     def __instancecheck__(self, instance):
         if type(instance) is MetabiosisWrapper:
@@ -196,26 +310,30 @@ class MetabiosisWrapper(object):
             keywordargs = convert_dict(kwargs, convert_values=convert)
 
         return_value = ffi.gc(
-                lib.PyObject_Call(self.obj, arguments_tuple, keywordargs),
+                lib.PyObject_Call(self.__dict__['obj'], arguments_tuple, keywordargs),
                 lib.Py_DECREF)
 
         return self._maybe_pypy_convert(return_value)
 
     def get_type(self):
-        typeobject = ffi.cast("PyObject*", self.obj.ob_type)
+        typeobject = ffi.cast("PyObject*", self.__dict__['obj'].ob_type)
 
         lib.Py_INCREF(typeobject)
 
         return MetabiosisWrapper(ffi.gc(typeobject, lib.Py_DECREF))
 
     def _maybe_pypy_convert(self, py_obj):
-        if self.noconvert:
-            return MetabiosisWrapper(py_obj, self.noconvert)
+        if isinstance(py_obj, MetabiosisWrapper):
+            return py_obj
+        if self.__dict__['noconvert']:
+            return MetabiosisWrapper(py_obj, self.__dict__['noconvert'])
         else:
             return pypy_convert(py_obj)
 
 
 def pypy_convert(obj):
+    if isinstance(obj, MetabiosisWrapper):
+        return obj
     type = MetabiosisWrapper(obj).get_type().obj
     if type in cpy_to_pypy_converters:
         try:
@@ -296,6 +414,9 @@ def init_cpy_to_pypy_converters():
     import __builtin__
     builtin = pymetabiosis.module.import_module("__builtin__", noconvert=True)
     types = pymetabiosis.module.import_module("types")
+
+    global cpy_operator
+    cpy_operator = pymetabiosis.import_module('operator', noconvert=True)
 
     cpy_to_pypy_converters = {
             builtin.int.obj : pypy_convert_int,
