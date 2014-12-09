@@ -110,6 +110,17 @@ class MetabiosisWrapper(object):
         self.obj = obj
         self.noconvert = noconvert
 
+    def __add__(self, b):
+        op = pymetabiosis.module.import_module("operator")
+        return op.add(self, b)
+
+    def __mul__(self, b):
+        op = pymetabiosis.module.import_module("operator")
+        return op.mul(self, b)
+
+    def __int__(self):
+        return pypy_convert_int(self.obj)
+
     def __repr__(self):
         py_str = ffi.gc(lib.PyObject_Repr(self.obj), lib.Py_DECREF)
         return pypy_convert(py_str)
