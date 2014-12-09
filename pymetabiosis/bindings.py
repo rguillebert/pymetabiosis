@@ -49,9 +49,12 @@ LIBDIRS = _get_library_dirs()
 
 def _get_extra_link_args():
     args = []
-    if sys.platform == 'darwin' or sys.platform.startswith("linux"):
+    if sys.platform == 'darwin':
         libdir = LIBDIRS[0]
         args.append("-Wl,-rpath,%s"%os.path.dirname(libdir))
+    elif sys.platform.startswith("linux"):
+        libdir = LIBDIRS[0]
+        args.append("-Wl,-rpath,%s"%libdir)
 
     return args
 
