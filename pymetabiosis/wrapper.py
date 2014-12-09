@@ -164,8 +164,9 @@ class MetabiosisWrapper(object):
     def __imul__(self, other):
         return self._maybe_pypy_convert(cpy_operator.imul(self, other))
 
-    def __index__(self, item):
-        return self._maybe_pypy_convert(cpy_operator.index(self, item))
+    def __index__(self):
+        """ __index__ must always return an int. """
+        return pypy_convert_int(cpy_operator.index(self).__dict__['obj'])
 
     def __invert__(self):
         return self._maybe_pypy_convert(cpy_operator.invert(self))

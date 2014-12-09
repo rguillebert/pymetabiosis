@@ -13,6 +13,12 @@ def test_getattr_on_module():
     assert isinstance(connect, MetabiosisWrapper)
     assert repr(connect).startswith("<built-in function connect>")
 
+def test_setattr_on_module():
+    this = import_module("this")
+    assert isinstance(this, MetabiosisWrapper)
+    this.a = 42
+    assert this.a == 42
+
 def test_call_function():
     sqlite = import_module("sqlite3")
     connection = sqlite.connect(":memory:")
@@ -287,21 +293,54 @@ def test_callbacks_exceptions():
 
 @pytest.mark.parametrize('op,input', [
     (operator.abs, -1),
+    (operator.index, 2),
     (operator.invert, 2),
     (operator.neg, 2),
-    # (operator.not_, 0),
+    (operator.not_, 0),
     (operator.pos, -2),
-    # (operator.truth, 0),
+    (operator.truth, 0),
 ])
 def test_unaryop(op, input):
     cinput = convert(input)
     wrapper = MetabiosisWrapper(cinput)
-    cresult = op(wrapper)
-    result = pypy_convert(cresult)
+    result = op(wrapper)
+    if isinstance(result, MetabiosisWrapper):
+        result = pypy_convert(result)
     expected = op(input)
     assert result == expected
 
 
+
+@pytest.mark.parametrize('op,arg1,arg2', [
+    (operator.add, 1, 2),
+    (operator.and_, 2, 3),
+    (operator.div, 15, 3),
+    (operator.eq, 2, 3),
+    (operator.floordiv, 14, 3),
+    (operator.ge, 3, 4),
+    (operator.gt, 3, 4),
+    (operator.le, 3, 4),
+    (operator.lshift, 3, 4),
+    (operator.lt, 3, 4),
+    (operator.mod, 3, 4),
+    (operator.ne, 3, 4),
+    (operator.or_, 3, 4),
+    (operator.pow, 3, 4),
+    (operator.rshift, 3, 4),
+    (operator.sub, 3, 4),
+    (operator.truediv, 3, 4),
+    (operator.xor, 3, 4),
+])
+def test_binaryop(op, arg1, arg2):
+    carg1 = convert(arg1)
+    wrapper1 = MetabiosisWrapper(carg1)
+    carg2 = convert(arg2)
+    wrapper2 = MetabiosisWrapper(carg2)
+    result = op(wrapper1, wrapper2)
+    if isinstance(result, MetabiosisWrapper):
+        result = pypy_convert(result)
+    expected = op(arg1, arg2)
+    assert result == expected
 
 
 
