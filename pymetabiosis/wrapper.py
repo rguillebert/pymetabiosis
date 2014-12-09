@@ -218,8 +218,50 @@ class MetabiosisWrapper(object):
     def __pow__(self, other):
         return self._maybe_pypy_convert(cpy_operator.pow(self, other))
 
+    def __radd__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.add(other, self))
+
+    def __rand__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.and_(other, self))
+
+    def __rdiv__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.div(other, self))
+
+    def __rdivmod__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.divmod(other, self))
+
+    def __rfloordiv__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.floordiv(other, self))
+
+    def __rlshift__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.lshift(other, self))
+
+    def __rmod__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.mod(other, self))
+
+    def __rmul__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.mul(other, self))
+
+    def __ror__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.or_(other, self))
+
+    def __rpow__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.pow(other, self))
+
+    def __rrshift__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.rshift(other, self))
+
+    def __rxor__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.xor(other, self))
+
     def __rshift__(self, other):
         return self._maybe_pypy_convert(cpy_operator.rshift(self, other))
+
+    def __rsub__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.sub(other, self))
+
+    def __rtruediv__(self, other):
+        return self._maybe_pypy_convert(cpy_operator.truediv(other, self))
 
     def __setslice__(self, a, b, value):
         return self._maybe_pypy_convert(cpy_operator.setslice(self, a, b, value))
