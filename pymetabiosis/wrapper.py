@@ -107,8 +107,8 @@ def convert_function(obj):
 
 class MetabiosisWrapper(object):
     def __init__(self, obj, noconvert=False):
-        self.__dict__['obj'] = obj
-        self.__dict__['noconvert'] = noconvert
+        self.__dict__['_cpyobj'] = obj
+        self.__dict__['_noconvert'] = noconvert
 
     def __abs__(self):
         return self._maybe_pypy_convert(cpy_operator.abs(self))
@@ -166,7 +166,7 @@ class MetabiosisWrapper(object):
 
     def __index__(self):
         """ __index__ must always return an int. """
-        return pypy_convert_int(cpy_operator.index(self).__dict__['obj'])
+        return pypy_convert_int(cpy_operator.index(self)._cpyobj)
 
     def __invert__(self):
         return self._maybe_pypy_convert(cpy_operator.invert(self))
@@ -279,15 +279,15 @@ class MetabiosisWrapper(object):
 
 
     def __repr__(self):
-        py_str = ffi.gc(lib.PyObject_Repr(self.__dict__['obj']), lib.Py_DECREF)
+        py_str = ffi.gc(lib.PyObject_Repr(self._cpyobj), lib.Py_DECREF)
         return pypy_convert(py_str)
 
     def __str__(self):
-        py_str = ffi.gc(lib.PyObject_Str(self.__dict__['obj']), lib.Py_DECREF)
+        py_str = ffi.gc(lib.PyObject_Str(self._cpyobj), lib.Py_DECREF)
         return pypy_convert(py_str)
 
     def __dir__(self):
-        py_lst = ffi.gc(lib.PyObject_Dir(self.__dict__['obj']), lib.Py_DECREF)
+        py_lst = ffi.gc(lib.PyObject_Dir(self._cpyobj), lib.Py_DECREF)
         return pypy_convert(py_lst)
 
     def __getattr__(self, name):
@@ -296,33 +296,33 @@ class MetabiosisWrapper(object):
     def _getattr(self, name):
         c_name = ffi.new("char[]", name)
         py_attr = ffi.gc(
-                lib.PyObject_GetAttrString(self.__dict__['obj'], c_name),
+                lib.PyObject_GetAttrString(self._cpyobj, c_name),
                 lib.Py_DECREF)
         return self._maybe_pypy_convert(py_attr)
 
     def __setattr__(self, key, value):
-        lib.PyObject_SetAttr(self.__dict__['obj'], convert(key), convert(value))
+        lib.PyObject_SetAttr(self._cpyobj, convert(key), convert(value))
 
     def __getitem__(self, key):
         py_res = ffi.gc(
-                lib.PyObject_GetItem(self.__dict__['obj'], convert(key)),
+                lib.PyObject_GetItem(self._cpyobj, convert(key)),
                 lib.Py_DECREF)
         return self._maybe_pypy_convert(py_res)
 
     def __setitem__(self, key, value):
-        lib.PyObject_SetItem(self.__dict__['obj'], convert(key), convert(value))
+        lib.PyObject_SetItem(self._cpyobj, convert(key), convert(value))
 
     def __delitem__(self, key):
-        lib.PyObject_DelItem(self.__dict__['obj'], convert(key))
+        lib.PyObject_DelItem(self._cpyobj, convert(key))
 
     def __len__(self):
-        return lib.PyObject_Size(self.__dict__['obj'])
+        return lib.PyObject_Size(self._cpyobj)
 
     def __nonzero__(self):
-        return lib.PyObject_IsTrue(self.__dict__['obj']) == 1
+        return lib.PyObject_IsTrue(self._cpyobj) == 1
 
     def __iter__(self):
-        py_iter = ffi.gc(lib.PyObject_GetIter(self.__dict__['obj']), lib.Py_DECREF)
+        py_iter = ffi.gc(lib.PyObject_GetIter(self._cpyobj), lib.Py_DECREF)
         while True:
             py_next = lib.PyIter_Next(py_iter)
             if py_next is None:
@@ -353,13 +353,13 @@ class MetabiosisWrapper(object):
             keywordargs = convert_dict(kwargs, convert_values=convert)
 
         return_value = ffi.gc(
-                lib.PyObject_Call(self.__dict__['obj'], arguments_tuple, keywordargs),
+                lib.PyObject_Call(self._cpyobj, arguments_tuple, keywordargs),
                 lib.Py_DECREF)
 
         return self._maybe_pypy_convert(return_value)
 
     def get_type(self):
-        typeobject = ffi.cast("PyObject*", self.__dict__['obj'].ob_type)
+        typeobject = ffi.cast("PyObject*", self._cpyobj.ob_type)
 
         lib.Py_INCREF(typeobject)
 
@@ -368,8 +368,8 @@ class MetabiosisWrapper(object):
     def _maybe_pypy_convert(self, py_obj):
         if isinstance(py_obj, MetabiosisWrapper):
             return py_obj
-        if self.__dict__['noconvert']:
-            return MetabiosisWrapper(py_obj, self.__dict__['noconvert'])
+        if self._noconvert:
+            return MetabiosisWrapper(py_obj, self._noconvert)
         else:
             return pypy_convert(py_obj)
 
@@ -377,13 +377,13 @@ class MetabiosisWrapper(object):
 def pypy_convert(obj):
     if isinstance(obj, MetabiosisWrapper):
         return obj
-    type = MetabiosisWrapper(obj).get_type().obj
+    type = MetabiosisWrapper(obj).get_type()._cpyobj
     if type in cpy_to_pypy_converters:
         try:
             return cpy_to_pypy_converters[type](obj)
         except NoConvertError:
             pass
-    if type == ApplevelWrapped.obj:
+    if type == ApplevelWrapped._cpyobj:
         return _obj_by_applevel[obj]
     else:
         return MetabiosisWrapper(obj)
@@ -431,7 +431,7 @@ class NoConvertError(Exception):
 
 
 pypy_to_cpy_converters = {
-    MetabiosisWrapper : operator.attrgetter("obj"),
+    MetabiosisWrapper : operator.attrgetter("_cpyobj"),
     int : convert_int,
     float : convert_float,
     str : convert_string,
@@ -462,21 +462,21 @@ def init_cpy_to_pypy_converters():
     cpy_operator = pymetabiosis.import_module('operator', noconvert=True)
 
     cpy_to_pypy_converters = {
-            builtin.int.obj : pypy_convert_int,
-            builtin.float.obj : pypy_convert_float,
-            builtin.str.obj : pypy_convert_string,
-            builtin.unicode.obj : pypy_convert_unicode,
-            builtin.tuple.obj : pypy_convert_tuple,
-            builtin.dict.obj : pypy_convert_dict,
-            builtin.list.obj : pypy_convert_list,
-            builtin.bool.obj : pypy_convert_bool,
-            builtin.type.obj : pypy_convert_type,
-            types.NoneType.obj : pypy_convert_None,
+            builtin.int._cpyobj : pypy_convert_int,
+            builtin.float._cpyobj : pypy_convert_float,
+            builtin.str._cpyobj : pypy_convert_string,
+            builtin.unicode._cpyobj : pypy_convert_unicode,
+            builtin.tuple._cpyobj : pypy_convert_tuple,
+            builtin.dict._cpyobj : pypy_convert_dict,
+            builtin.list._cpyobj : pypy_convert_list,
+            builtin.bool._cpyobj : pypy_convert_bool,
+            builtin.type._cpyobj : pypy_convert_type,
+            types.NoneType._cpyobj : pypy_convert_None,
             }
 
     converted_types = ['int', 'float', 'bool', 'str', 'unicode']
     for _type in converted_types:
-        cpy_type = getattr(builtin, _type).obj
+        cpy_type = getattr(builtin, _type)._cpyobj
         pypy_type = getattr(__builtin__, _type)
         cpy_to_pypy_types[cpy_type] = pypy_type
         pypy_to_cpy_types[pypy_type] = cpy_type
@@ -516,7 +516,7 @@ def convert_unknown(obj):
     except TypeError:
         aw = _applevel_by_unhashable_obj.get(obj)
     if aw is None:
-        aw = ApplevelWrapped().obj
+        aw = ApplevelWrapped()._cpyobj
         try:
             _applevel_by_obj[obj] = aw
         except TypeError:

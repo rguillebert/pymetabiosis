@@ -89,12 +89,12 @@ def test_getitem_setitem_delitem():
     d = builtin.dict({1: 'foo', (1, 'a'): 'zoo'})
     with pytest.raises(KeyError):
         d[2]
-    assert pypy_convert(d[1].obj) == 'foo'
-    assert pypy_convert(d[(1, 'a')].obj) == 'zoo'
+    assert pypy_convert(d[1]._cpyobj) == 'foo'
+    assert pypy_convert(d[(1, 'a')]._cpyobj) == 'zoo'
 
     key, lst = (1, 2), ['a', 'b']
     d[key] = lst
-    assert pypy_convert(d[key].obj) == lst
+    assert pypy_convert(d[key]._cpyobj) == lst
 
     with pytest.raises(TypeError):
         d[[1, 2]] = 0
@@ -157,7 +157,7 @@ def test_invert():
     builtin = import_module("__builtin__", noconvert=True)
     n = builtin.int(10)
     assert isinstance(n, MetabiosisWrapper)
-    assert pypy_convert((~n).obj) == ~10
+    assert pypy_convert((~n)._cpyobj) == ~10
 
 def test_iter():
     builtin = import_module("__builtin__", noconvert=True)
@@ -167,7 +167,7 @@ def test_iter():
         builtin.iter(1)
 
 def _pypy_convert_list(lst):
-    return [pypy_convert(x.obj) for x in lst]
+    return [pypy_convert(x._cpyobj) for x in lst]
 
 def test_exceptions():
     builtin = import_module("__builtin__")
@@ -188,7 +188,7 @@ def test_no_convert():
     part = functools.partial(operator.iadd, lst)
     part([1, 2, 3])
 
-    assert pypy_convert(lst.obj) == [1, 2, 3]
+    assert pypy_convert(lst._cpyobj) == [1, 2, 3]
 
 def test_applevel():
     fn = applevel('''
@@ -220,13 +220,13 @@ def test_opaque_objects():
     assert lst == [p1, p2, d]
 
     lst_cpy = builtin_noconvert.list([p1, p2, d])
-    assert pypy_convert(lst_cpy[0].obj) == p1
-    assert pypy_convert(lst_cpy[1].obj) == p2
-    assert pypy_convert(lst_cpy[2].obj) == d
+    assert pypy_convert(lst_cpy[0]._cpyobj) == p1
+    assert pypy_convert(lst_cpy[1]._cpyobj) == p2
+    assert pypy_convert(lst_cpy[2]._cpyobj) == d
     lst_cpy.reverse()
-    assert pypy_convert(lst_cpy[0].obj) == d
-    assert pypy_convert(lst_cpy[1].obj) == p2
-    assert pypy_convert(lst_cpy[2].obj) == p1
+    assert pypy_convert(lst_cpy[0]._cpyobj) == d
+    assert pypy_convert(lst_cpy[1]._cpyobj) == p2
+    assert pypy_convert(lst_cpy[2]._cpyobj) == p1
 
 def test_isinstance():
     builtin = import_module("__builtin__", noconvert=True)
