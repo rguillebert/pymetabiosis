@@ -119,6 +119,7 @@ ffi.cdef("""
          PyObject* PyObject_Dir(PyObject *o);
          PyObject* PyObject_Call(PyObject *callable_object, PyObject *args, PyObject *kw);
          PyObject* PyObject_GetAttrString(PyObject *o, const char *attr_name);
+         PyObject* PyObject_SetAttr(PyObject *o, PyObject *attr_name, PyObject *v);
          PyObject* PyObject_GetItem(PyObject *o, PyObject *key);
          int PyObject_SetItem(PyObject *o, PyObject *key, PyObject *v);
          int PyObject_DelItem(PyObject *o, PyObject *key);
