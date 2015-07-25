@@ -5,3 +5,4 @@ __pycache__
 htmlcov
 _cffi*.so
 build
+dist
