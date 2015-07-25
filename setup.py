@@ -10,7 +10,7 @@ setup(
 
     packages=find_packages(),
     license="MIT",
-    description="A way of using CPython 2's modules on other cffi compatible Python implementations",
+    description="A way of using CPython 2's C extension modules on other cffi compatible Python implementations",
 
     install_requires=["cffi"],
     ext_modules=[ffi.verifier.get_extension()],
