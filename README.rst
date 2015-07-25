@@ -10,4 +10,4 @@ A bridge between PyPy and CPython that works by embedding CPython, its main purp
 Installation
 ------------
 
-Before pip installing the package, you must set the ``PYTHON_EMBED`` environment variable to a Python virtualenv (or /usr) and then do ``pip install git+https://github.com/rguillebert/pymetabiosis``
+Before pip installing the package, you must set the ``PYTHON_EMBED`` environment variable to a Python virtualenv (or /usr) and then do ``pip install pymetabiosis``
