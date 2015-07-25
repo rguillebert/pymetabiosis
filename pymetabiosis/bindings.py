@@ -220,16 +220,16 @@ def add_exception_handling(name, errcond=ffi.NULL):
                 # (and also return NULL in this case).
                 return None
             if py_exc_type in exception_by_py_exc:
-                lib.PyErr_Print()
+                lib.PyErr_Clear()
                 # TODO - get value
                 raise exception_by_py_exc[py_exc_type]
             # less generic types first
             for py_exc_type, exc_type in reversed(exceptions):
                 if lib.PyErr_ExceptionMatches(py_exc_type):
-                    lib.PyErr_Print()
+                    lib.PyErr_Clear()
                     # TODO - get value
                     raise exc_type
-            lib.PyErr_Print()
+            lib.PyErr_Clear()
             raise Exception("Call of '%s' exploded" % name)
         return res
 
