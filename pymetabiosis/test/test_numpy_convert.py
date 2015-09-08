@@ -52,7 +52,10 @@ def test_pypy_ndarray_converter():
     assert type(m3) is np.ndarray
     assert m3.dtype is m1.dtype
     assert m3[1][1] == 11
-
+    a = np.random.random(30) + 1j*np.random.rand(30)
+    x = cpython_numpy.fft.fft(a)
+    assert type(x) is np.ndarray
+    assert x.shape == (30,)
 
 def _import_pypy_numpy():
     try:
