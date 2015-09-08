@@ -25,11 +25,23 @@ def test_scalar_converter():
 
 
 def test_pypy_numpy_converter():
-    pypy_numpy = _import_pypy_numpy()
+    np = _import_pypy_numpy()
     cpython_numpy = _import_cpy_numpy()
+    builtin = import_module("__builtin__", noconvert=True)
+    operator = import_module("operator", noconvert=True)
     register_pypy_cpy_numpy_converters()
-    arr = pypy_numpy.zeros(2) + 1
+    arr = np.zeros(2) + 1
     assert cpython_numpy.sum(arr) == 2.0
+    arr = np.array([2, 3], dtype=np.int8)
+    assert cpython_numpy.sum(arr) == 5
+    for dtype in [
+            np.int8, np.uint8, np.int16, np.uint16, np.int32, np.uint32,
+            np.int64, np.uint64,
+            np.float16, np.float32, np.float64]:
+        m = np.zeros((17, 13), dtype=dtype)
+        assert builtin.len(m) == 17
+        assert operator.attrgetter('dtype.name')(m) == dtype.__name__
+        assert operator.attrgetter('shape')(m) == (17, 13)
     # TODO - returning from cpython_numpy
    #cpython_numpy.add(m1, m2, out=m1)
    #assert m1[1][1] == 3
