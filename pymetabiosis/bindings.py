@@ -18,13 +18,15 @@ def _get_python():
             python = os.path.join(python_embed_prefix, 'python.exe')
         else:
             python = os.path.join(python_embed_prefix, 'bin', 'python')
+    advice = "Please set your PYTHON_EMBED env var to point to your Python "\
+             "installation."
+    if not os.path.exists(python):
+        raise RuntimeError("Can not find python at %s. %s" % (python, advice))
     is_pypy = check_output(
         [python, "-c", "import sys;print hasattr(sys, 'pypy_version_info')"]
     ).strip()
     if is_pypy.lower() == "true":
-        msg = "%s is a PyPy interpreter and not Python.  Please set\n"\
-              "your PYTHON_EMBED env var to point to your Python "\
-              "installation."%python
+        msg = "%s is a PyPy interpreter and not Python. %s" % (python, advice)
         raise RuntimeError(msg)
     return python
 
