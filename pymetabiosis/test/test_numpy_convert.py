@@ -2,7 +2,7 @@ import pytest
 from pymetabiosis.module import import_module
 from pymetabiosis.numpy_convert import \
         register_cpy_numpy_to_pypy_builtin_converters, \
-        register_pypy_cpy_numpy_converters
+        register_pypy_cpy_ndarray_converters
 
 
 def test_scalar_converter():
@@ -24,12 +24,12 @@ def test_scalar_converter():
         assert numpy.float128(-42.0) == -42.0
 
 
-def test_pypy_numpy_converter():
+def test_pypy_ndarray_converter():
     np = _import_pypy_numpy()
     cpython_numpy = _import_cpy_numpy()
     builtin = import_module("__builtin__", noconvert=True)
     operator = import_module("operator", noconvert=True)
-    register_pypy_cpy_numpy_converters()
+    register_pypy_cpy_ndarray_converters()
     arr = np.zeros(2) + 1
     assert cpython_numpy.sum(arr) == 2.0
     arr = np.array([2, 3], dtype=np.int8)
@@ -42,9 +42,16 @@ def test_pypy_numpy_converter():
         assert builtin.len(m) == 17
         assert operator.attrgetter('dtype.name')(m) == dtype.__name__
         assert operator.attrgetter('shape')(m) == (17, 13)
-    # TODO - returning from cpython_numpy
-   #cpython_numpy.add(m1, m2, out=m1)
-   #assert m1[1][1] == 3
+    m1 = np.array([[1, 2], [2, 3]])
+    m2 = np.array([[3, 1], [-2, 4]])
+    cpython_numpy.add(m1, m2, out=m1)
+    assert type(m1) is np.ndarray
+    assert m1[1][1] == 7
+    # convert from CPython ndarray to PyPy ndarray
+    m3 = cpython_numpy.add(m1, m2)
+    assert type(m3) is np.ndarray
+    assert m3.dtype is m1.dtype
+    assert m3[1][1] == 11
 
 
 def _import_pypy_numpy():
