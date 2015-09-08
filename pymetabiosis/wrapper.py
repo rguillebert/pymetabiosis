@@ -14,7 +14,7 @@ def convert(obj):
             pass
     if getattr(obj, '_pymetabiosis_wrap', None):
         return convert_unknown(obj)
-    raise NoConvertError(type(obj))
+    raise NoConvertError(_type)
 
 def convert_string(s):
     return ffi.gc(lib.PyString_FromString(ffi.new("char[]", s)), lib.Py_DECREF)

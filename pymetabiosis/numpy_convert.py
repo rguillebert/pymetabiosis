@@ -1,5 +1,7 @@
 from pymetabiosis.module import import_module
-from pymetabiosis.wrapper import MetabiosisWrapper, cpy_to_pypy_converters
+from pymetabiosis.bindings import lib, ffi
+from pymetabiosis.wrapper import MetabiosisWrapper, cpy_to_pypy_converters, \
+        pypy_to_cpy_converters, applevel
 
 
 def register_cpy_numpy_to_pypy_builtin_converters():
@@ -24,3 +26,32 @@ def register_cpy_numpy_to_pypy_builtin_converters():
 
     if hasattr(numpy, "float128"):
         cpy_to_pypy_converters.update({numpy.float128._cpyobj: call_direct(builtin.float)})
+
+
+def register_pypy_cpy_numpy_converters():
+    ''' Convert numpy types from PyPy numpy to CPython numpy, and back.
+    '''
+    import numpy
+    pypy_to_cpy_converters[numpy.ndarray] = convert_ndarray
+    # TODO - from cpython numpy to pypy numpy
+   #cpython_numpy = import_module("numpy")
+   #cpy_to_pypy_converters[numpy.ndarray._cpyobj] = lambda obj: 
+
+_convert_ndarray = applevel('''
+import numpy
+import ctypes
+def _convert_ndarray(shape, dtype, size, addr):
+    return numpy.ndarray(
+        shape=shape,
+        dtype=dtype,
+        buffer=(ctypes.c_char*size).from_address(addr))
+return _convert_ndarray
+''', noconvert=True)
+
+def convert_ndarray(obj):
+    w = _convert_ndarray(
+        obj.shape,
+        obj.dtype.name,
+        len(obj.data),
+        obj.__array_interface__["data"][0])
+    return ffi.gc(w._cpyobj, lib.Py_DECREF)
