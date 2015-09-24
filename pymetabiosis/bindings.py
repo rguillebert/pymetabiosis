@@ -18,13 +18,15 @@ def _get_python():
             python = os.path.join(python_embed_prefix, 'python.exe')
         else:
             python = os.path.join(python_embed_prefix, 'bin', 'python')
+    advice = "Please set your PYTHON_EMBED env var to point to your Python "\
+             "installation."
+    if not os.path.exists(python):
+        raise RuntimeError("Can not find python at %s. %s" % (python, advice))
     is_pypy = check_output(
         [python, "-c", "import sys;print hasattr(sys, 'pypy_version_info')"]
     ).strip()
     if is_pypy.lower() == "true":
-        msg = "%s is a PyPy interpreter and not Python.  Please set\n"\
-              "your PYTHON_EMBED env var to point to your Python "\
-              "installation."%python
+        msg = "%s is a PyPy interpreter and not Python. %s" % (python, advice)
         raise RuntimeError(msg)
     return python
 
@@ -132,6 +134,7 @@ ffi.cdef("""
          PyObject* PyObject_Dir(PyObject *o);
          PyObject* PyObject_Call(PyObject *callable_object, PyObject *args, PyObject *kw);
          PyObject* PyObject_GetAttrString(PyObject *o, const char *attr_name);
+         PyObject* PyObject_SetAttr(PyObject *o, PyObject *attr_name, PyObject *v);
          PyObject* PyObject_GetItem(PyObject *o, PyObject *key);
          int PyObject_SetItem(PyObject *o, PyObject *key, PyObject *v);
          int PyObject_DelItem(PyObject *o, PyObject *key);
@@ -233,16 +236,16 @@ def add_exception_handling(name, errcond=ffi.NULL):
                 # (and also return NULL in this case).
                 return None
             if py_exc_type in exception_by_py_exc:
-                lib.PyErr_Print()
+                lib.PyErr_Clear()
                 # TODO - get value
                 raise exception_by_py_exc[py_exc_type]
             # less generic types first
             for py_exc_type, exc_type in reversed(exceptions):
                 if lib.PyErr_ExceptionMatches(py_exc_type):
-                    lib.PyErr_Print()
+                    lib.PyErr_Clear()
                     # TODO - get value
                     raise exc_type
-            lib.PyErr_Print()
+            lib.PyErr_Clear()
             raise Exception("Call of '%s' exploded" % name)
         return res
 
