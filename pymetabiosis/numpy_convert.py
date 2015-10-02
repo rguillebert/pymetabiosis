@@ -50,22 +50,12 @@ def _convert_ndarray(shape, dtype, size, strides, offset, addr):
 return _convert_ndarray
 ''', noconvert=True)
 
-def convert_ndarray(obj):
-    base = obj if obj.base is None else obj.base
-    offset = obj.__array_interface__['data'][0] - base.__array_interface__['data'][0]
-    w = _convert_ndarray(
-        obj.shape,
-        obj.dtype.name,
-        len(base.data),
-        obj.strides,
-        offset,
-        base.__array_interface__["data"][0])
-    return ffi.gc(w._cpyobj, lib.Py_DECREF)
-
 _convert_from_ndarray = applevel('''
+import numpy
 def _convert_from_ndarray(obj):
-    base = obj if obj.base is None else obj.base
-    offset = obj.__array_interface__['data'][0] - base.__array_interface__['data'][0]
+    base = obj.base if isinstance(obj.base, numpy.ndarray) else obj
+    offset = obj.__array_interface__['data'][0] - \
+             base.__array_interface__['data'][0]
     return (obj.shape,
             obj.dtype.name,
             len(base.data),
@@ -81,6 +71,19 @@ try:
 except ImportError:
     pass
 else:
+    def convert_ndarray(obj):
+        base = obj.base if isinstance(obj.base, numpy.ndarray) else obj
+        offset = obj.__array_interface__['data'][0] - \
+                 base.__array_interface__['data'][0]
+        w = _convert_ndarray(
+            obj.shape,
+            obj.dtype.name,
+            len(base.data),
+            obj.strides,
+            offset,
+            base.__array_interface__["data"][0])
+        return ffi.gc(w._cpyobj, lib.Py_DECREF)
+
     def convert_from_ndarray(obj):
         shape, dtype, size, strides, offset, addr = _convert_from_ndarray\
             ._call((obj,), args_kwargs_converted=True)
