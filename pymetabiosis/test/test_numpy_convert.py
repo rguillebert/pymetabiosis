@@ -57,6 +57,14 @@ def test_pypy_ndarray_converter():
     assert type(x) is np.ndarray
     assert x.shape == (30,)
 
+def test_pypy_ndarray_offset_handling():
+    np = _import_pypy_numpy()
+    cpython_numpy = _import_cpy_numpy()
+    register_pypy_cpy_ndarray_converters()
+    x = np.asarray((complex(1, 2), complex(3, 4)))
+    assert cpython_numpy.sum(x.real) == 4.0
+    assert cpython_numpy.sum(x.imag) == 6.0
+
 def _import_pypy_numpy():
     try:
         import numpy

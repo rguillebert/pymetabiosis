@@ -40,28 +40,28 @@ def register_pypy_cpy_ndarray_converters():
 _convert_ndarray = applevel('''
 import numpy
 import ctypes
-def _convert_ndarray(shape, dtype, size, addr):
+def _convert_ndarray(shape, dtype, size, strides, offset, addr):
     return numpy.ndarray(
         shape=shape,
         dtype=dtype,
+        strides=strides,
+        offset=offset,
         buffer=(ctypes.c_char*size).from_address(addr))
 return _convert_ndarray
 ''', noconvert=True)
 
-def convert_ndarray(obj):
-    w = _convert_ndarray(
-        obj.shape,
-        obj.dtype.name,
-        len(obj.data),
-        obj.__array_interface__["data"][0])
-    return ffi.gc(w._cpyobj, lib.Py_DECREF)
-
 _convert_from_ndarray = applevel('''
+import numpy
 def _convert_from_ndarray(obj):
+    base = obj.base if isinstance(obj.base, numpy.ndarray) else obj
+    offset = obj.__array_interface__['data'][0] - \
+             base.__array_interface__['data'][0]
     return (obj.shape,
             obj.dtype.name,
-            len(obj.data),
-            obj.__array_interface__["data"][0])
+            len(base.data),
+            obj.strides,
+            offset,
+            base.__array_interface__["data"][0])
 return _convert_from_ndarray
 ''')
 
@@ -71,10 +71,25 @@ try:
 except ImportError:
     pass
 else:
+    def convert_ndarray(obj):
+        base = obj.base if isinstance(obj.base, numpy.ndarray) else obj
+        offset = obj.__array_interface__['data'][0] - \
+                 base.__array_interface__['data'][0]
+        w = _convert_ndarray(
+            obj.shape,
+            obj.dtype.name,
+            len(base.data),
+            obj.strides,
+            offset,
+            base.__array_interface__["data"][0])
+        return ffi.gc(w._cpyobj, lib.Py_DECREF)
+
     def convert_from_ndarray(obj):
-        shape, dtype, size, addr = _convert_from_ndarray\
+        shape, dtype, size, strides, offset, addr = _convert_from_ndarray\
             ._call((obj,), args_kwargs_converted=True)
         return numpy.ndarray(
             shape=shape,
             dtype=dtype,
+            strides=strides,
+            offset=offset,
             buffer=(ctypes.c_char*size).from_address(addr))
