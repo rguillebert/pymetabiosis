@@ -7,3 +7,4 @@ _cffi*.so
 build
 dist
 .cache
+tags
