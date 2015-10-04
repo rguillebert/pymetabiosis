@@ -14,10 +14,10 @@ def test_getattr_on_module():
     assert repr(connect).startswith("<built-in function connect>")
 
 def test_setattr_on_module():
-    this = import_module("this")
-    assert isinstance(this, MetabiosisWrapper)
-    this.a = 42
-    assert this.a == 42
+    pickle = import_module("pickle")
+    assert isinstance(pickle, MetabiosisWrapper)
+    pickle.a = 42
+    assert pickle.a == 42
 
 def test_call_function():
     sqlite = import_module("sqlite3")
