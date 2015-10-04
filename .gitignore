@@ -6,3 +6,4 @@ htmlcov
 _cffi*.so
 build
 dist
+.cache
