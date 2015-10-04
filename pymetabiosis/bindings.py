@@ -45,7 +45,20 @@ def _get_library_dirs():
         [PYTHON, "-c",
          "from distutils import sysconfig;"
          "print sysconfig.get_config_var('LIBDIR')"]
-    )]
+    ).strip()]
+
+LIBDIRS = _get_library_dirs()
+
+def _get_extra_link_args():
+    args = []
+    if sys.platform == 'darwin':
+        libdir = LIBDIRS[0]
+        args.append("-Wl,-rpath,%s"%os.path.dirname(libdir))
+    elif sys.platform.startswith("linux"):
+        libdir = LIBDIRS[0]
+        args.append("-Wl,-rpath,%s"%libdir)
+
+    return args
 
 
 ffi = FFI()
@@ -199,7 +212,8 @@ lib = ffi.verify("""
                  """,
                  include_dirs=_get_include_dirs(),
                  libraries=["python2.7"],
-                 library_dirs=_get_library_dirs(),
+                 library_dirs=LIBDIRS,
+                 extra_link_args=_get_extra_link_args(),
                  flags=ffi.RTLD_GLOBAL)
 
 prog_name = ffi.new("char[]", PYTHON)
