@@ -11,8 +11,9 @@ addons:
         - python-numpy
 cache: pip
 install:
-    - pypy -V
     - echo $PATH
+    - curl -O https://bootstrap.pypa.io/get-pip.py
+    - /usr/bin/pypy get-pip.py --user
     - /usr/bin/pypy -m pip install --user -r requirements.txt git+https://bitbucket.org/pypy/numpy
 script: /usr/bin/pypy -m py.test
 env:
