@@ -9,6 +9,7 @@ addons:
         packages:
         - pypy
         - python-numpy
+        - pypy-dev
 cache: pip
 install:
     - echo $PATH
