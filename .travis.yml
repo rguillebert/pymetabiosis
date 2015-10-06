@@ -11,7 +11,9 @@ addons:
         - python-numpy
 cache: pip
 install:
-    - pypy -m pip install --user -r requirements.txt git+https://bitbucket.org/pypy/numpy
-script: pypy -m py.test
+    - pypy -V
+    - echo $PATH
+    - /usr/bin/pypy -m pip install --user -r requirements.txt git+https://bitbucket.org/pypy/numpy
+script: /usr/bin/pypy -m py.test
 env:
     - PYTHON_EMBED=/usr
