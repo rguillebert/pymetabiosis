@@ -9,9 +9,13 @@ addons:
         packages:
         - pypy
         - python-numpy
+        - pypy-dev
 cache: pip
 install:
-    - pypy -m pip install --user -r requirements.txt git+https://bitbucket.org/pypy/numpy
-script: pypy -m py.test
+    - echo $PATH
+    - curl -O https://bootstrap.pypa.io/get-pip.py
+    - /usr/bin/pypy get-pip.py --user
+    - /usr/bin/pypy -m pip install --user -r requirements.txt git+https://bitbucket.org/pypy/numpy
+script: /usr/bin/pypy -m py.test
 env:
     - PYTHON_EMBED=/usr
